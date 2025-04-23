@@ -1,6 +1,7 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
+import fs from 'fs';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -37,6 +38,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
 
+
 // Define the schema for the quote form
 const quoteSchema = z.object({
   customerName: z.string().min(2, {
@@ -61,7 +63,7 @@ const quoteSchema = z.object({
       widthInches: z.number().min(0, {
         message: 'Width in inches must be a positive number.',
       }),
-      price: z.number(),
+      price: z.number().min(0),
     })
   ),
 });
@@ -141,12 +143,42 @@ export default function CreateQuotePage() {
     }, 0);
   };
 
-  function onSubmit(values: Quote) {
-    // Here you would handle the form submission, e.g., sending the data to a server
-    console.log(values);
-    toast({
-      title: 'Quote created successfully!',
-      description: 'Your quote has been saved.',
+  const onSubmit = async (values: Quote) => {
+    const now = new Date();
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+    const yy = now.getFullYear().toString().slice(-2);
+    const hh = now.getHours().toString().padStart(2, '0');
+    const min = now.getMinutes().toString().padStart(2, '0');
+    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+
+    const quoteData = {
+      ...values,
+      quoteNumber,
+    };
+
+    const quotesDir = './src/quotes';
+    const filePath = `${quotesDir}/quote-${quoteNumber}.json`;
+
+    try {
+      if (!fs.existsSync(quotesDir)) {
+        fs.mkdirSync(quotesDir, {recursive: true});
+      }
+      await fs.promises.writeFile(filePath, JSON.stringify(quoteData, null, 2));
+
+      toast({
+        title: 'Quote created successfully!',
+        description: `Your quote has been saved as quote-${quoteNumber}.json`,
+      });
+    } catch (error) {
+      console.error('Error saving quote:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error saving quote',
+        description: 'There was an error saving your quote. Please try again.',
+      });
+    } finally {
+      console.log('Quote saved', quoteData);
     });
   }
 

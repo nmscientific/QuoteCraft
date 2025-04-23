@@ -1,6 +1,7 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, } from 'react';
+import logo from '@/public/logo.png';
 import {saveQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
@@ -11,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import logo from '@/public/logo.png'
 import {
   Form,
   FormControl,
@@ -99,6 +99,7 @@ export default function CreateQuotePage() {
   >([]);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
+  const logoImg = logo; 
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
     defaultValues: {
@@ -197,10 +198,11 @@ export default function CreateQuotePage() {
     <div className="container py-10">
       <Card>
           <CardHeader>
-            <img src={logo.src} alt="Logo" className='h-10 w-10 print:hidden' />
+            <img src={logoImg.src} alt="Logo" className='h-10 w-10 print:hidden' />
             <h1 className='print:block hidden font-bold'>
               Quote
             </h1>
+          <div className="print:hidden">
             <CardTitle className='no-print'>
               Create New Quote
             </CardTitle>
@@ -208,7 +210,7 @@ export default function CreateQuotePage() {
               Enter the details for your new quote.
           </CardDescription>          
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent className="grid gap-4 print:mb-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
               setIsQuoteSaved(false)
@@ -322,22 +324,19 @@ export default function CreateQuotePage() {
                       <TableHead>Actions</TableHead>
                     </TableRow> </TableHeader>
                   <TableBody> 
-                    {products.map((product, index) => (
-                      <TableRow key={index} >
+                    {products.map((product, index) => (                   
+                      <TableRow key={index} className='print:my-1'>
                         <TableCell className='print:text-sm print:p-0'>{product.productDescription}</TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0'>
-                          {product.lengthFeet}
-                          </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                         {product.lengthFeet}                         
+                        </TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0' >
                           {product.lengthInches}
                         </TableCell>
-
-                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                        <TableCell className='print:text-sm print:w-10 print:p-0' >
                           {product.widthFeet}
                         </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0'>
-                          {product.widthInches}
-                        </TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0' >{product.widthInches}</TableCell>
                         <TableCell className='print:text-sm print:p-0'>${product.price.toFixed(2)}</TableCell>
                         <TableCell className='print:text-sm print:p-0'>
                           ${(() => {
@@ -347,38 +346,15 @@ export default function CreateQuotePage() {
                           })()}
                         </TableCell>
                         
-                        <TableCell className='print:hidden'>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => removeProduct(index)}
-                          >
+                        <TableCell className='print:hidden'> 
+                        <Button
+                            variant="destructive"                           
+                            onClick={() => removeProduct(index)}>                         
                             <Trash className="h-4 w-4" />
                           </Button>
-                         <Input className='no-print print:m-0 print:p-0'
-                            type="number"
-                            placeholder="0"
-                            value={product.lengthFeet}
-                            onChange={e => {
-                              const value = parseFloat(e.target.value);
-                              updateProduct(index, 'lengthFeet', isNaN(value) ? 0 : value);
-                            }}
-                          />                         <Input className='no-print print:m-0 print:p-0'
-                            type="number"
-                            placeholder="0"
-                            value={product.widthInches}
-                            onChange={e => {
-                              const value = parseFloat(e.target.value);
-                              updateProduct(index, 'widthInches', isNaN(value) ? 0 : value);
-                            }}
-                          />                           <Input className='no-print print:m-0 print:p-0'
-                            type="number"
-                            size="icon"
-                            onClick={() => removeProduct(index)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                         </TableCell>
+
+
                       </TableRow>
                     ))}
                   </TableBody>

@@ -166,20 +166,12 @@ export default function CreateQuotePage() {
           total: total
         };
 
-        const response = await saveQuote(quoteData);
-        if (response.success) {
+        const result = await saveQuote(quoteData);
+        if (result.success) {
           setIsQuoteSaved(true);
-          toast({title: 'Quote created successfully!', description: response.message});
+          toast({title: 'Quote created successfully!', description: result.message});
         } else {
-        toast({variant: 'destructive', title: 'Error saving quote', description: response.message});
-      }
-
-
-      const response = await saveQuote(quoteData);
-      if (response.success) {
-        toast({title: 'Quote created successfully!', description: response.message});
-      } else {
-        toast({variant: 'destructive', title: 'Error saving quote', description: response.message});
+          toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
       }
     });
   };

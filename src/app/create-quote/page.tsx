@@ -35,6 +35,7 @@ import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Trash} from 'lucide-react';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -92,6 +93,7 @@ export default function CreateQuotePage() {
   const [products, setProducts] = useState<
     {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
   >([]);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
@@ -115,6 +117,13 @@ export default function CreateQuotePage() {
         price: product.squareFootagePrice,
       },
     ]);
+    setSelectedProduct(null); // Reset selected product after adding
+  };
+
+  const removeProduct = (index: number) => {
+    const newProducts = [...products];
+    newProducts.splice(index, 1);
+    setProducts(newProducts);
   };
 
   const updateProduct = (index: number, field: string, value: number) => {
@@ -208,13 +217,10 @@ export default function CreateQuotePage() {
                   Select the products for the quote.
                 </FormDescription>
                 <Select onValueChange={(value) => {
-                  const product = defaultProducts.find(p => p.description === value);
-                  if (product) {
-                    addProduct(product);
-                  }
+                  setSelectedProduct(value);
                 }}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select a product" />
+                    <SelectValue placeholder="Select a product" value={selectedProduct || undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {defaultProducts.map((product) => (
@@ -224,6 +230,22 @@ export default function CreateQuotePage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const product = defaultProducts.find(p => p.description === selectedProduct);
+                    if (product) {
+                      addProduct(product);
+                    } else {
+                      toast({
+                        title: 'Please select a product',
+                      });
+                    }
+                  }}
+                >
+                  Add Product
+                </Button>
               </div>
 
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -238,6 +260,7 @@ export default function CreateQuotePage() {
                       <TableHead>Width (In)</TableHead>
                       <TableHead>Price/Sq. Ft.</TableHead>
                       <TableHead>Total</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -295,6 +318,15 @@ export default function CreateQuotePage() {
                             const width = product.widthFeet + product.widthInches / 12;
                             return (length * width * product.price).toFixed(2);
                           })()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => removeProduct(index)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

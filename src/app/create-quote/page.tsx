@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import {cn} from '@/lib/utils';
 import {
   Form,
   FormControl,
@@ -163,17 +163,17 @@ export default function CreateQuotePage() {
     const hh = now.getHours().toString().padStart(2, '0');
     const min = now.getMinutes().toString().padStart(2, '0');
     console.log('onSubmit');
-    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
-    const total = calculateTotal();
+      const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+      const total = calculateTotal();
 
-    const quoteData = {
-      customerName: values.customerName,
-      projectName: values.projectName,
-      description: values.description,
-      quoteNumber,
-      products: products,
-      total: total
-    };
+      const quoteData = {
+        customerName: values.customerName,
+        projectName: values.projectName,
+        description: values.description,
+        quoteNumber,
+        products: products,
+        total: total,
+      };
 
     try{
       const result = await saveQuote(quoteData);
@@ -187,14 +187,21 @@ export default function CreateQuotePage() {
       console.error('error saving quote',e)
     }
   };
+  const handlePrint = () => {
+    console.log('handlePrint');
+    window.print();
+  };
 
-  const handlePrint = () => {    console.log('handlePrint');
-    window.print();  };
-  
   return (
     <div className="container py-10">
       <Card>
         <CardHeader>
+           <h1 className='print:block hidden'>
+            Quote
+          </h1>
+          <div className="print:hidden">
+
+          
           <CardTitle>Create New Quote</CardTitle>
           <CardDescription>
             Enter the details for your new quote.
@@ -202,11 +209,14 @@ export default function CreateQuotePage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
+              setIsQuoteSaved(false)
+            }} className="space-y-4">
+              <div className='print:hidden'>
               <FormField
                 control={form.control}
                 name="customerName"
-                render={({field}) => (
+                render={({field}) => (                  
                   <FormItem>
                     <FormLabel>Customer Name</FormLabel>
                     <FormControl>
@@ -251,6 +261,8 @@ export default function CreateQuotePage() {
                   </FormItem>
                 )}
               />
+              </div>
+              />
 
               <div>
                 <FormLabel>Products</FormLabel>
@@ -266,7 +278,7 @@ export default function CreateQuotePage() {
                   <SelectContent>
                     {defaultProducts.map((product) => (
                       <SelectItem key={product.description} value={product.description}>
-
+                       
                         {product.description}
                       </SelectItem>
                     ))}
@@ -291,15 +303,16 @@ export default function CreateQuotePage() {
                 </Button>
               </div>
 
-              <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-               
-                <Table className={cn({
-                  "print:table": isQuoteSaved
-                })}>
-                  
+            
+
+              <div className="relative overflow-x-auto shadow-md sm:rounded-lg">                
+                <Table
+                  className={cn({
+                    'print:table': isQuoteSaved,
+                  })}
+                >
                   <TableCaption>List of selected products</TableCaption>
-                  <TableHeader>
-                    <TableRow>
+                  <TableHeader> <TableRow>
                       <TableHead>Description</TableHead>
                       <TableHead>Length (Ft)</TableHead>
                       <TableHead>Length (In)</TableHead>
@@ -308,9 +321,8 @@ export default function CreateQuotePage() {
                       <TableHead>Price/Sq. Ft.</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                    </TableRow> </TableHeader>
+                  <TableBody> 
                     {products.map((product, index) => (
                       <TableRow key={index}>
                         <TableCell>{product.productDescription}</TableCell>
@@ -368,8 +380,8 @@ export default function CreateQuotePage() {
                           })()}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            className='print:hidden'
+                        <Button
+                            className="print:hidden"
                             variant="destructive"
                             size="icon"
                             onClick={() => removeProduct(index)}
@@ -387,13 +399,15 @@ export default function CreateQuotePage() {
                 <Label>Total: ${calculateTotal().toFixed(2)}</Label>
               </div>
 
+              <div className="print:hidden">
               <Button type="submit">Create Quote</Button>
               {isQuoteSaved && (
                 <>
                    <Button type="button" onClick={handlePrint}>Print Quote</Button>
                 </>
-              )}
+              )}</div>
 
+              </div>
             </form>
           </Form>
         </CardContent>

@@ -204,7 +204,6 @@ export default function CreateQuotePage() {
             Enter the details for your new quote.
           </CardDescription>
         </CardHeader>
-        </div>
         <CardContent className="grid gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
@@ -222,7 +221,7 @@ export default function CreateQuotePage() {
                     <FormDescription>
                       Enter the name of the customer.
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -238,7 +237,7 @@ export default function CreateQuotePage() {
                     <FormDescription>
                       Enter the name of the project.
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -254,7 +253,7 @@ export default function CreateQuotePage() {
                     <FormDescription>
                       Enter a description for the quote.
                     </FormDescription>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -389,7 +388,6 @@ export default function CreateQuotePage() {
                   </TableBody>
                 </Table>
               </div>
-
               <div>
                 <Label>Total: ${calculateTotal().toFixed(2)}</Label>
               </div>
@@ -401,8 +399,7 @@ export default function CreateQuotePage() {
                    <Button type="button" onClick={handlePrint}>Print Quote</Button>
                 </>
               )}</div>
-
-              </div>
+              
             </form>
           </Form>
         </CardContent>

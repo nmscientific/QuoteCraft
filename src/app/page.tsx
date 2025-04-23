@@ -6,8 +6,11 @@ import { File } from "lucide-react";
 import { LayoutDashboard } from "lucide-react";
 import { Settings } from "lucide-react";
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <header className="w-full flex items-center justify-center pt-16 pb-8">
@@ -40,7 +43,7 @@ export default function Home() {
               <CardDescription>Start a new quote from scratch.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => alert('Create New Quote')}>
+              <Button variant="outline" className="w-full" onClick={() => router.push('/create-quote')}>
                 Create
               </Button>
             </CardContent>
@@ -55,7 +58,7 @@ export default function Home() {
               <CardDescription>Open, edit, and manage saved quotes.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => alert('Open Existing Quote')}>
+              <Button variant="outline" className="w-full" onClick={() => router.push('/open-quote')}>
                 Open
               </Button>
             </CardContent>
@@ -70,7 +73,7 @@ export default function Home() {
               <CardDescription>Manage and update product details.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => alert('Configure Product List')}>
+              <Button variant="outline" className="w-full" onClick={() => router.push('/configure-products')}>
                 Configure
               </Button>
             </CardContent>

@@ -90,10 +90,11 @@ body {
 
 
 @media print {
+  
   .no-print, .no-print * {
     display: none !important;
   }
-  button {
+  button, .print\:hidden {
     display: none !important;
 
   }
@@ -109,7 +110,7 @@ body {
     table-layout: fixed !important;
     border: none;
   }
-
+  .print\:px-0{ padding-left: 0 !important; padding-right: 0 !important; }
   input {
     margin: 0 !important;
     padding: 0 !important;
@@ -120,19 +121,13 @@ body {
   }
 }
 .TableBody {
-  line-height: 1.2;
-}
-
-
-  .print\:px-0 {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    line-height: 1.2;
   }
 
   @page {
     size: portrait;
   }
-}
+
 .TableBody {
   line-height: 1.2;
 }

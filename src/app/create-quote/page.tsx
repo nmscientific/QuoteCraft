@@ -198,7 +198,7 @@ export default function CreateQuotePage() {
         <CardHeader>
            <h1 className='print:block hidden'>
             Quote
-          </h1>
+          </h1>          
           <CardTitle>Create New Quote</CardTitle>
           <CardDescription>
             Enter the details for your new quote.
@@ -218,7 +218,7 @@ export default function CreateQuotePage() {
                     <FormControl>
                       <Input placeholder="Customer name" {...field} />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className='no-print'>
                       Enter the name of the customer.
                     </FormDescription>
                     <FormMessage/>
@@ -234,7 +234,7 @@ export default function CreateQuotePage() {
                     <FormControl>
                       <Input placeholder="Project name" {...field} />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className='no-print'>
                       Enter the name of the project.
                     </FormDescription>
                     <FormMessage/>
@@ -250,7 +250,7 @@ export default function CreateQuotePage() {
                     <FormControl>
                       <Textarea placeholder="Description" {...field} />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className='no-print'>
                       Enter a description for the quote.
                     </FormDescription>
                     <FormMessage />
@@ -259,10 +259,10 @@ export default function CreateQuotePage() {
               />
 
               <div>
-                <FormLabel>Products</FormLabel>
-                <FormDescription>
+                <FormLabel className='no-print'>Products</FormLabel>
+                <FormDescription className='no-print'>
                   Select the products for the quote.
-                </FormDescription>
+                </FormDescription>                
                 <Select onValueChange={(value) => {
                   setSelectedProduct(value);
                 }}>
@@ -300,16 +300,17 @@ export default function CreateQuotePage() {
             
 
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">                
-                <Table
+                <Table                 
                   className={cn({
                     'print:table': isQuoteSaved,
+                    'print:w-auto': isQuoteSaved
                   })}
                 >
                   <TableCaption>List of selected products</TableCaption>
                   <TableHeader> <TableRow>
                       <TableHead>Description</TableHead>
                       <TableHead>Length (Ft)</TableHead>
-                      <TableHead>Length (In)</TableHead>
+                      <TableHead >Length (In)</TableHead>
                       <TableHead>Width (Ft)</TableHead>
                       <TableHead>Width (In)</TableHead>
                       <TableHead>Price/Sq. Ft.</TableHead>
@@ -317,9 +318,9 @@ export default function CreateQuotePage() {
                       <TableHead>Actions</TableHead>
                     </TableRow> </TableHeader>
                   <TableBody> 
-                    {products.map((product, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{product.productDescription}</TableCell>
+                    {products.map((product, index) => (                      
+                      <TableRow key={index} >
+                        <TableCell className='print:text-sm'>{product.productDescription}</TableCell>
                         <TableCell>
                          
                           <Input
@@ -331,7 +332,7 @@ export default function CreateQuotePage() {
                               updateProduct(index, 'lengthFeet', isNaN(value) ? 0 : value);
                             }}
                           />
-                        </TableCell>
+                        </TableCell>                        
                         <TableCell>
                           <Input
                             type="number"
@@ -342,7 +343,7 @@ export default function CreateQuotePage() {
                               updateProduct(index, 'lengthInches', isNaN(value) ? 0 : value);
                             }}
                           />
-                        </TableCell>
+                        </TableCell>                        
                         <TableCell>
                           <Input
                             type="number"
@@ -353,7 +354,7 @@ export default function CreateQuotePage() {
                               updateProduct(index, 'widthFeet', isNaN(value) ? 0 : value);
                             }}
                           />
-                        </TableCell>
+                        </TableCell>                        
                         <TableCell>
                           <Input
                             type="number"
@@ -364,15 +365,15 @@ export default function CreateQuotePage() {
                               updateProduct(index, 'widthInches', isNaN(value) ? 0 : value);
                             }}
                           />
-                        </TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
-                        <TableCell>
+                        </TableCell>                        
+                        <TableCell className='print:text-sm'>${product.price.toFixed(2)}</TableCell>
+                        <TableCell className='print:text-sm'>
                           ${(() => {
                             const length = product.lengthFeet + product.lengthInches / 12;
                             const width = product.widthFeet + product.widthInches / 12;
                             return (length * width * product.price).toFixed(2);
                           })()}
-                        </TableCell>
+                        </TableCell>                        
                         <TableCell>
                         <Button
                             className="print:hidden"

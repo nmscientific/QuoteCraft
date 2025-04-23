@@ -87,6 +87,8 @@ body {
   }
 }
 
+
+
 @media print {
   .no-print, .no-print * {
     display: none !important;
@@ -95,8 +97,18 @@ body {
     display: none !important;
   }
 
+  .CardContent{
+    margin-bottom: .5rem;
+    
+  }
+
   @page {
     size: portrait;
   }
+}
+
+
+.TableBody{
+  line-height: 1.2;
 }
 

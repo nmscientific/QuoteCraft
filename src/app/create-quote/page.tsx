@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import {
   Form,
   FormControl,
@@ -189,7 +190,7 @@ export default function CreateQuotePage() {
 
   const handlePrint = () => {    console.log('handlePrint');
     window.print();  };
-
+  
   return (
     <div className="container py-10">
       <Card>
@@ -273,8 +274,9 @@ export default function CreateQuotePage() {
                 </Select>
                 <Button
                   type="button"
+                  className="print:hidden"
                   size="sm"
-                  onClick={() => {
+                  onClick={() =>{
                     const product = defaultProducts.find(p => p.description === selectedProduct);
                     if (product) {
                       addProduct(product);
@@ -290,7 +292,11 @@ export default function CreateQuotePage() {
               </div>
 
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <Table>
+               
+                <Table className={cn({
+                  "print:table": isQuoteSaved
+                })}>
+                  
                   <TableCaption>List of selected products</TableCaption>
                   <TableHeader>
                     <TableRow>
@@ -309,6 +315,7 @@ export default function CreateQuotePage() {
                       <TableRow key={index}>
                         <TableCell>{product.productDescription}</TableCell>
                         <TableCell>
+                         
                           <Input
                             type="number"
                             placeholder="0"
@@ -362,6 +369,7 @@ export default function CreateQuotePage() {
                         </TableCell>
                         <TableCell>
                           <Button
+                            className='print:hidden'
                             variant="destructive"
                             size="icon"
                             onClick={() => removeProduct(index)}
@@ -381,7 +389,9 @@ export default function CreateQuotePage() {
 
               <Button type="submit">Create Quote</Button>
               {isQuoteSaved && (
-                <Button type="button" onClick={handlePrint}>Print Quote</Button>
+                <>
+                   <Button type="button" onClick={handlePrint}>Print Quote</Button>
+                </>
               )}
 
             </form>

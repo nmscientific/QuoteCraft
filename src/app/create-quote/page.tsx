@@ -1,7 +1,6 @@
 'use client';
 
-import {useState} from 'react';
-import fs from 'fs';
+import {useState, useTransition} from 'react';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -38,6 +37,23 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
 
+async function saveQuote(quoteData: any): Promise<string> {
+  'use server';
+  const fs = require('fs');
+
+  const quotesDir = './src/quotes';
+  const filePath = `${quotesDir}/quote-${quoteData.quoteNumber}.json`;
+  try {
+    if (!fs.existsSync(quotesDir)) {
+      fs.mkdirSync(quotesDir, {recursive: true});
+    }
+    await fs.promises.writeFile(filePath, JSON.stringify(quoteData, null, 2));
+    return `Your quote has been saved as quote-${quoteData.quoteNumber}.json`;
+  } catch (error) {
+    console.error('Error saving quote:', error);
+    return `There was an error saving your quote. Please try again.`;
+  }
+}
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -92,6 +108,7 @@ const defaultProducts: Product[] = [
 
 export default function CreateQuotePage() {
   const {toast} = useToast();
+  const [isPending, startTransition] = useTransition();
   const [products, setProducts] = useState<
     {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
   >([]);
@@ -144,41 +161,26 @@ export default function CreateQuotePage() {
   };
 
   const onSubmit = async (values: Quote) => {
-    const now = new Date();
-    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-    const dd = now.getDate().toString().padStart(2, '0');
-    const yy = now.getFullYear().toString().slice(-2);
-    const hh = now.getHours().toString().padStart(2, '0');
-    const min = now.getMinutes().toString().padStart(2, '0');
-    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+    startTransition(async () => {
+      const now = new Date();
+      const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+      const dd = now.getDate().toString().padStart(2, '0');
+      const yy = now.getFullYear().toString().slice(-2);
+      const hh = now.getHours().toString().padStart(2, '0');
+      const min = now.getMinutes().toString().padStart(2, '0');
+      const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
 
-    const quoteData = {
-      ...values,
-      quoteNumber,
-    };
+      const quoteData = {
+        ...values,
+        quoteNumber,
+      };
 
-    const quotesDir = './src/quotes';
-    const filePath = `${quotesDir}/quote-${quoteNumber}.json`;
-
-    try {
-      if (!fs.existsSync(quotesDir)) {
-        fs.mkdirSync(quotesDir, {recursive: true});
+      const response = await saveQuote(quoteData);
+      if (response.startsWith('Your')) {
+        toast({title: 'Quote created successfully!', description: response});
+      } else {
+        toast({variant: 'destructive', title: 'Error saving quote', description: response});
       }
-      await fs.promises.writeFile(filePath, JSON.stringify(quoteData, null, 2));
-
-      toast({
-        title: 'Quote created successfully!',
-        description: `Your quote has been saved as quote-${quoteNumber}.json`,
-      });
-    } catch (error) {
-      console.error('Error saving quote:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error saving quote',
-        description: 'There was an error saving your quote. Please try again.',
-      });
-    } finally {
-      console.log('Quote saved', quoteData);
     });
   }
 

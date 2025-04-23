@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useTransition} from 'react';
+import {useState, useTransition, useEffect} from 'react';
 import {saveQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
@@ -93,6 +93,7 @@ export default function CreateQuotePage() {
   const {toast} = useToast();
   const [isPending, startTransition] = useTransition();
   const [products, setProducts] = useState<
+    
     {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
   >([]);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
@@ -103,6 +104,9 @@ export default function CreateQuotePage() {
       customerName: '',
       projectName: '',
       description: '',
+      products: [],
+    },
+  });
       products: [],
     },
   });
@@ -145,21 +149,31 @@ export default function CreateQuotePage() {
 
   const onSubmit = async (values: Quote) => {
     startTransition(async () => {
-      const now = new Date();
-      const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-      const dd = now.getDate().toString().padStart(2, '0');
-      const yy = now.getFullYear().toString().slice(-2);
-      const hh = now.getHours().toString().padStart(2, '0');
-      const min = now.getMinutes().toString().padStart(2, '0');
-      const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
-      const total = calculateTotal();
+        const now = new Date();
+        const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+        const dd = now.getDate().toString().padStart(2, '0');
+        const yy = now.getFullYear().toString().slice(-2);
+        const hh = now.getHours().toString().padStart(2, '0');
+        const min = now.getMinutes().toString().padStart(2, '0');
+        const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+        const total = calculateTotal();
 
-      const quoteData = {
-        ...values,
-        quoteNumber,
-        products,
-        total
-      };
+        const quoteData = {
+          customerName: values.customerName,
+          projectName: values.projectName,
+          description: values.description,
+          quoteNumber,
+          products: products,
+          total: total
+        };
+
+        const response = await saveQuote(quoteData);
+        if (response.success) {
+          setIsQuoteSaved(true);
+          toast({title: 'Quote created successfully!', description: response.message});
+        } else {
+        toast({variant: 'destructive', title: 'Error saving quote', description: response.message});
+      }
 
 
       const response = await saveQuote(quoteData);
@@ -170,6 +184,16 @@ export default function CreateQuotePage() {
       }
     });
   };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const [isQuoteSaved, setIsQuoteSaved] = useState(false);
+
+  useEffect(() => {
+    setIsQuoteSaved(false);
+  }, []);
 
   return (
     <div className="container py-10">
@@ -360,6 +384,10 @@ export default function CreateQuotePage() {
               </div>
 
               <Button type="submit">Create Quote</Button>
+              {isQuoteSaved && (
+                <Button type="button" onClick={handlePrint}>Print Quote</Button>
+              )}
+
             </form>
           </Form>
         </CardContent>

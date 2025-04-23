@@ -147,33 +147,31 @@ export default function CreateQuotePage() {
   };
 
   const onSubmit = async (values: Quote) => {
-    startTransition(async () => {
-        const now = new Date();
-        const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-        const dd = now.getDate().toString().padStart(2, '0');
-        const yy = now.getFullYear().toString().slice(-2);
-        const hh = now.getHours().toString().padStart(2, '0');
-        const min = now.getMinutes().toString().padStart(2, '0');
-        const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
-        const total = calculateTotal();
+    const now = new Date();
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+    const yy = now.getFullYear().toString().slice(-2);
+    const hh = now.getHours().toString().padStart(2, '0');
+    const min = now.getMinutes().toString().padStart(2, '0');
+    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+    const total = calculateTotal();
 
-        const quoteData = {
-          customerName: values.customerName,
-          projectName: values.projectName,
-          description: values.description,
-          quoteNumber,
-          products: products,
-          total: total
-        };
+    const quoteData = {
+      customerName: values.customerName,
+      projectName: values.projectName,
+      description: values.description,
+      quoteNumber,
+      products: products,
+      total: total
+    };
 
-        const result = await saveQuote(quoteData);
-        if (result.success) {
-          setIsQuoteSaved(true);
-          toast({title: 'Quote created successfully!', description: result.message});
-        } else {
-          toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
+    const result = await saveQuote(quoteData);
+    if (result.success) {
+      setIsQuoteSaved(true);
+      toast({title: 'Quote created successfully!', description: result.message});
+    } else {
+      toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
       }
-    });
   };
 
   const handlePrint = () => {

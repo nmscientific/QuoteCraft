@@ -106,10 +106,9 @@ export default function CreateQuotePage() {
       description: '',
       products: [],
     },
-  });
-      products: [],
-    },
-  });
+    
+  })
+
 
   const addProduct = (product: Product) => {
     setProducts([

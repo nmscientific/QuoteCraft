@@ -199,9 +199,6 @@ export default function CreateQuotePage() {
            <h1 className='print:block hidden'>
             Quote
           </h1>
-          <div className="print:hidden">
-
-          
           <CardTitle>Create New Quote</CardTitle>
           <CardDescription>
             Enter the details for your new quote.
@@ -212,7 +209,6 @@ export default function CreateQuotePage() {
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
               setIsQuoteSaved(false)
             }} className="space-y-4">
-              <div className='print:hidden'>
               <FormField
                 control={form.control}
                 name="customerName"
@@ -261,7 +257,6 @@ export default function CreateQuotePage() {
                   </FormItem>
                 )}
               />
-              </div>
 
               <div>
                 <FormLabel>Products</FormLabel>

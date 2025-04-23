@@ -204,6 +204,7 @@ export default function CreateQuotePage() {
             Enter the details for your new quote.
           </CardDescription>
         </CardHeader>
+        </div>
         <CardContent className="grid gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{

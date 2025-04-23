@@ -195,15 +195,17 @@ export default function CreateQuotePage() {
   return (
     <div className="container py-10">
       <Card>
-        <CardHeader>
+        <div className='no-print'>
+          <CardHeader>
            <h1 className='print:block hidden'>
             Quote
-          </h1>          
+          </h1>
           <CardTitle>Create New Quote</CardTitle>
           <CardDescription>
             Enter the details for your new quote.
-          </CardDescription>
+          </CardDescription>          
         </CardHeader>
+        </div>
         <CardContent className="grid gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{

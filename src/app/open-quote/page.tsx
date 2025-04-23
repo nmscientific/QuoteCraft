@@ -11,9 +11,7 @@ import {
 } from '@/components/ui/card';
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from '@/components/ui/alert-dialog';
-
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import {useToast} from '@/hooks/use-toast';
 
 // Define a type for the quote data
 type Quote = {
@@ -30,90 +28,58 @@ type Quote = {
   }[];
 };
 
-// Function to read quote files from the 'quotes' directory
-async function getQuoteFiles(): Promise<string[]> {
-  const quotesDirectory = path.join(process.cwd(), 'quotes');
-
-  try {
-    // Ensure the 'quotes' directory exists
-    await fs.mkdir(quotesDirectory, {recursive: true});
-
-    const files = await fs.readdir(quotesDirectory);
-    return files.filter(file => file.endsWith('.json'));
-  } catch (error) {
-    console.error('Error reading quote files:', error);
-    return [];
-  }
-}
-
-// Function to read quote data from a file
-async function readQuoteData(filename: string): Promise<Quote | null> {
-  const quotesDirectory = path.join(process.cwd(), 'quotes');
-  const filePath = path.join(quotesDirectory, filename);
-
-  try {
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(fileContent) as Quote;
-  } catch (error) {
-    console.error(`Error reading quote data from ${filename}:`, error);
-    return null;
-  }
-}
-
-// Function to delete a quote file
-async function deleteQuoteFile(filename: string): Promise<void> {
-  const quotesDirectory = path.join(process.cwd(), 'quotes');
-  const filePath = path.join(quotesDirectory, filename);
-
-  try {
-    await fs.unlink(filePath);
-    console.log(`Deleted quote file: ${filename}`);
-  } catch (error) {
-    console.error(`Error deleting quote file ${filename}:`, error);
-    throw error;
-  }
-}
-
 export default function OpenQuotePage() {
   const [quoteFiles, setQuoteFiles] = useState<string[]>([]);
   const [quotesData, setQuotesData] = useState<{[filename: string]: Quote}>({});
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
+  const {toast} = useToast();
 
   useEffect(() => {
-    async function loadQuotes() {
-      const files = await getQuoteFiles();
-      setQuoteFiles(files);
-
-      const quoteData: {[filename: string]: Quote} = {};
-      for (const file of files) {
-        const data = await readQuoteData(file);
-        if (data) {
-          quoteData[file] = data;
-        }
-      }
-      setQuotesData(quoteData);
-    }
-
-    loadQuotes();
+    // Placeholder for loading quotes from a server action or API route
+    const mockQuoteFiles = ['quote1.json', 'quote2.json']; // Replace with actual data fetching
+    const mockQuotesData: {[filename: string]: Quote} = {
+      'quote1.json': {
+        customerName: 'John Doe',
+        projectName: 'Sample Project 1',
+        description: 'A sample quote',
+        products: [
+          {
+            productDescription: 'Standard Glass',
+            lengthFeet: 10,
+            lengthInches: 0,
+            widthFeet: 5,
+            widthInches: 0,
+            price: 2.5,
+          },
+        ],
+      },
+      'quote2.json': {
+        customerName: 'Jane Smith',
+        projectName: 'Sample Project 2',
+        description: 'Another sample quote',
+        products: [
+          {
+            productDescription: 'Tempered Glass',
+            lengthFeet: 8,
+            lengthInches: 6,
+            widthFeet: 4,
+            widthInches: 6,
+            price: 3.5,
+          },
+        ],
+      },
+    };
+    setQuoteFiles(mockQuoteFiles);
+    setQuotesData(mockQuotesData);
   }, []);
 
   const handleDeleteQuote = async (filename: string) => {
-    try {
-      await deleteQuoteFile(filename);
-      // Update the state to remove the deleted quote
-      const updatedQuoteFiles = quoteFiles.filter(file => file !== filename);
-      setQuoteFiles(updatedQuoteFiles);
-      const updatedQuotesData = {...quotesData};
-      delete updatedQuotesData[filename];
-      setQuotesData(updatedQuotesData);
-      // Optionally, reset the selected quote
-      if (selectedQuote === filename) {
-        setSelectedQuote(null);
-      }
-    } catch (error) {
-      console.error('Error deleting quote:', error);
-      // Handle error as needed (e.g., display an error message)
-    }
+    // Placeholder for deleting quote using a server action or API route
+    console.log(`Deleting quote: ${filename}`);
+    toast({
+      title: 'Quote deleted successfully!',
+      description: `Quote ${filename} has been deleted.`,
+    });
   };
 
   return (

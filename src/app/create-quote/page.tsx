@@ -34,6 +34,7 @@ import {useToast} from '@/hooks/use-toast';
 import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -46,9 +47,18 @@ const quoteSchema = z.object({
   description: z.string().optional(),
   products: z.array(
     z.object({
-      description: z.string(),
-      squareFootage: z.number().min(0, {
-        message: 'Square footage must be a positive number.',
+      productDescription: z.string(),
+      lengthFeet: z.number().min(0, {
+        message: 'Length in feet must be a positive number.',
+      }),
+      lengthInches: z.number().min(0, {
+        message: 'Length in inches must be a positive number.',
+      }),
+      widthFeet: z.number().min(0, {
+        message: 'Width in feet must be a positive number.',
+      }),
+      widthInches: z.number().min(0, {
+        message: 'Width in inches must be a positive number.',
       }),
       price: z.number(),
     })
@@ -80,7 +90,7 @@ const defaultProducts: Product[] = [
 export default function CreateQuotePage() {
   const {toast} = useToast();
   const [products, setProducts] = useState<
-    {description: string; squareFootage: number; price: number}[]
+    {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
   >([]);
 
   const form = useForm<Quote>({
@@ -97,22 +107,28 @@ export default function CreateQuotePage() {
     setProducts([
       ...products,
       {
-        description: product.description,
-        squareFootage: 0,
+        productDescription: product.description,
+        lengthFeet: 0,
+        lengthInches: 0,
+        widthFeet: 0,
+        widthInches: 0,
         price: product.squareFootagePrice,
       },
     ]);
   };
 
-  const updateSquareFootage = (index: number, squareFootage: number) => {
+  const updateProduct = (index: number, field: string, value: number) => {
     const newProducts = [...products];
-    newProducts[index].squareFootage = squareFootage;
+    // @ts-ignore
+    newProducts[index][field] = value;
     setProducts(newProducts);
   };
 
   const calculateTotal = () => {
     return products.reduce((total, product) => {
-      return total + product.squareFootage * product.price;
+      const length = product.lengthFeet + product.lengthInches / 12;
+      const width = product.widthFeet + product.widthInches / 12;
+      return total + length * width * product.price;
     }, 0);
   };
 
@@ -191,28 +207,23 @@ export default function CreateQuotePage() {
                 <FormDescription>
                   Select the products for the quote.
                 </FormDescription>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {defaultProducts.map(product => (
-                    <Card key={product.description}>
-                      <CardHeader>
-                        <CardTitle>{product.description}</CardTitle>
-                        <CardDescription>
-                          Price: ${product.squareFootagePrice.toFixed(2)}/sq.
-                          ft.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => addProduct(product)}
-                        >
-                          Add Product
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <Select onValueChange={(value) => {
+                  const product = defaultProducts.find(p => p.description === value);
+                  if (product) {
+                    addProduct(product);
+                  }
+                }}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {defaultProducts.map((product) => (
+                      <SelectItem key={product.description} value={product.description}>
+                        {product.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -221,7 +232,10 @@ export default function CreateQuotePage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Description</TableHead>
-                      <TableHead>Square Footage</TableHead>
+                      <TableHead>Length (Ft)</TableHead>
+                      <TableHead>Length (In)</TableHead>
+                      <TableHead>Width (Ft)</TableHead>
+                      <TableHead>Width (In)</TableHead>
                       <TableHead>Price/Sq. Ft.</TableHead>
                       <TableHead>Total</TableHead>
                     </TableRow>
@@ -229,24 +243,58 @@ export default function CreateQuotePage() {
                   <TableBody>
                     {products.map((product, index) => (
                       <TableRow key={index}>
-                        <TableCell>{product.description}</TableCell>
+                        <TableCell>{product.productDescription}</TableCell>
                         <TableCell>
                           <Input
                             type="number"
                             placeholder="0"
-                            value={product.squareFootage}
+                            value={product.lengthFeet}
                             onChange={e => {
                               const value = parseFloat(e.target.value);
-                              updateSquareFootage(
-                                index,
-                                isNaN(value) ? 0 : value
-                              );
+                              updateProduct(index, 'lengthFeet', isNaN(value) ? 0 : value);
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={product.lengthInches}
+                            onChange={e => {
+                              const value = parseFloat(e.target.value);
+                              updateProduct(index, 'lengthInches', isNaN(value) ? 0 : value);
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={product.widthFeet}
+                            onChange={e => {
+                              const value = parseFloat(e.target.value);
+                              updateProduct(index, 'widthFeet', isNaN(value) ? 0 : value);
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={product.widthInches}
+                            onChange={e => {
+                              const value = parseFloat(e.target.value);
+                              updateProduct(index, 'widthInches', isNaN(value) ? 0 : value);
                             }}
                           />
                         </TableCell>
                         <TableCell>${product.price.toFixed(2)}</TableCell>
                         <TableCell>
-                          ${(product.squareFootage * product.price).toFixed(2)}
+                          ${(() => {
+                            const length = product.lengthFeet + product.lengthInches / 12;
+                            const width = product.widthFeet + product.widthInches / 12;
+                            return (length * width * product.price).toFixed(2);
+                          })()}
                         </TableCell>
                       </TableRow>
                     ))}

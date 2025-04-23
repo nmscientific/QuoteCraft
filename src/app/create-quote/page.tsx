@@ -257,7 +257,7 @@ export default function CreateQuotePage() {
                     <FormDescription>
                       Enter a description for the quote.
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />

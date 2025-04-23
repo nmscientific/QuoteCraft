@@ -10,4 +10,5 @@ export type Quote = {
     widthInches: number;
     price: number;
   }[];
+  total: number;
 };

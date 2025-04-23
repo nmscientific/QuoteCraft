@@ -9,11 +9,17 @@ export async function saveQuote(quoteData: Quote) {
   const dd = now.getDate().toString().padStart(2, '0');
   const yy = now.getFullYear().toString().slice(-2);
   const hh = now.getHours().toString().padStart(2, '0');
-  const min = now.getMinutes().toString().padStart(2, '0');
-  const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+    const min = now.getMinutes().toString().padStart(2, '0');
+    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
 
   const quoteWithNumber = {
-    ...quoteData,
+      customerName: quoteData.customerName,
+      projectName: quoteData.projectName,
+      description: quoteData.description,
+      products: quoteData.products,
+      total: quoteData.total,
+
+
     quoteNumber,
   };
 

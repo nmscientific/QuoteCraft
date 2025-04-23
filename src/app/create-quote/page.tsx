@@ -152,11 +152,15 @@ export default function CreateQuotePage() {
       const hh = now.getHours().toString().padStart(2, '0');
       const min = now.getMinutes().toString().padStart(2, '0');
       const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+      const total = calculateTotal();
 
       const quoteData = {
         ...values,
         quoteNumber,
+        products,
+        total
       };
+
 
       const response = await saveQuote(quoteData);
       if (response.success) {

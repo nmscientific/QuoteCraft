@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {cn} from '@/lib/utils';
+import logo from '@/public/logo.png'
 import {
   Form,
   FormControl,
@@ -195,17 +196,18 @@ export default function CreateQuotePage() {
   return (
     <div className="container py-10">
       <Card>
-        <div className='no-print'>
           <CardHeader>
-           <h1 className='print:block hidden'>
-            <strong >Quote</strong>
-          </h1>
-          <CardTitle>Create New Quote</CardTitle>
-          <CardDescription>
-            Enter the details for your new quote.
+            <img src={logo.src} alt="Logo" className='h-10 w-10 print:hidden' />
+            <h1 className='print:block hidden font-bold'>
+              Quote
+            </h1>
+            <CardTitle className='no-print'>
+              Create New Quote
+            </CardTitle>
+            <CardDescription className='no-print'>
+              Enter the details for your new quote.
           </CardDescription>          
         </CardHeader>
-        </div>
         <CardContent className="grid gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
@@ -214,11 +216,11 @@ export default function CreateQuotePage() {
               <FormField
                 control={form.control}
                 name="customerName"
-                render={({field}) => (                  
+                render={({field}) => (
                   <FormItem>
                     <FormLabel className='no-print'>Customer Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Customer name" {...field} />
+                      <Input className='print:m-0 print:p-0' placeholder="Customer name" {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
                       Enter the name of the customer.
@@ -233,7 +235,7 @@ export default function CreateQuotePage() {
                 render={({field}) => (
                   <FormItem>
                     <FormLabel className='no-print'>Project Name</FormLabel>
-                    <FormControl>
+                    <FormControl >
                       <Input placeholder="Project name" {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
@@ -249,7 +251,7 @@ export default function CreateQuotePage() {
                 render={({field}) => (
                   <FormItem>
                     <FormLabel className='no-print'>Description</FormLabel>
-                    <FormControl>
+                    <FormControl >
                       <Textarea placeholder="Description" {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
@@ -264,12 +266,12 @@ export default function CreateQuotePage() {
                 <FormLabel className='no-print'>Products</FormLabel>
                 <FormDescription className='no-print'>
                   Select the products for the quote.
-                </FormDescription>                
+                </FormDescription>
                 <Select onValueChange={(value) => {
                   setSelectedProduct(value);
                 }}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select a product" value={selectedProduct || undefined} />
+                    <SelectValue className='no-print' placeholder="Select a product" value={selectedProduct || undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {defaultProducts.map((product) => (
@@ -300,7 +302,7 @@ export default function CreateQuotePage() {
               </div>
 
             
-
+             
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">                
                 <Table                 
                   className={cn({
@@ -320,45 +322,48 @@ export default function CreateQuotePage() {
                       <TableHead>Actions</TableHead>
                     </TableRow> </TableHeader>
                   <TableBody> 
-                    {products.map((product, index) => (                      
+                    {products.map((product, index) => (
                       <TableRow key={index} >
-                        <TableCell className='print:text-sm'>{product.productDescription}</TableCell>
-                        <TableCell className='no-print'>
-                         
-                          <Input
+                        <TableCell className='print:text-sm print:p-0'>{product.productDescription}</TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                          {product.lengthFeet}
+                          </TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                          {product.lengthInches}
+                        </TableCell>
+
+                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                          {product.widthFeet}
+                        </TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0'>
+                          {product.widthInches}
+                        </TableCell>
+                        <TableCell className='print:text-sm print:p-0'>${product.price.toFixed(2)}</TableCell>
+                        <TableCell className='print:text-sm print:p-0'>
+                          ${(() => {
+                            const length = product.lengthFeet + product.lengthInches / 12;
+                            const width = product.widthFeet + product.widthInches / 12;
+                            return (length * width * product.price).toFixed(2);
+                          })()}
+                        </TableCell>
+                        
+                        <TableCell className='print:hidden'>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => removeProduct(index)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                         <Input className='no-print print:m-0 print:p-0'
                             type="number"
                             placeholder="0"
                             value={product.lengthFeet}
-                            onChange={e => {                              
+                            onChange={e => {
                               const value = parseFloat(e.target.value);
                               updateProduct(index, 'lengthFeet', isNaN(value) ? 0 : value);
                             }}
-                          />
-                        </TableCell>                        
-                        <TableCell>
-                          <Input
-                          type="number"
-                            placeholder="0"
-                            value={product.lengthInches}
-                            onChange={e => {
-                              const value = parseFloat(e.target.value);
-                              updateProduct(index, 'lengthInches', isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </TableCell>                        
-                        <TableCell className='no-print'>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={product.widthFeet}
-                            onChange={e => {
-                              const value = parseFloat(e.target.value);
-                              updateProduct(index, 'widthFeet', isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </TableCell>                                              
-                        <TableCell>
-                          <Input
+                          />                         <Input className='no-print print:m-0 print:p-0'
                             type="number"
                             placeholder="0"
                             value={product.widthInches}
@@ -366,20 +371,8 @@ export default function CreateQuotePage() {
                               const value = parseFloat(e.target.value);
                               updateProduct(index, 'widthInches', isNaN(value) ? 0 : value);
                             }}
-                          />
-                        </TableCell>                        
-                        <TableCell className='print:text-sm'>${product.price.toFixed(2)}</TableCell>
-                        <TableCell className='print:text-sm'>
-                          ${(() => {
-                            const length = product.lengthFeet + product.lengthInches / 12;
-                            const width = product.widthFeet + product.widthInches / 12;
-                            return (length * width * product.price).toFixed(2);
-                          })()}
-                        </TableCell>                        
-                        <TableCell className='print:hidden'>
-                        <Button
-                            className="print:hidden"
-                            variant="destructive"
+                          />                           <Input className='no-print print:m-0 print:p-0'
+                            type="number"
                             size="icon"
                             onClick={() => removeProduct(index)}
                           >

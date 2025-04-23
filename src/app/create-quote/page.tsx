@@ -1,6 +1,7 @@
 'use client';
 
 import {useState, useTransition} from 'react';
+import {saveQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -36,24 +37,6 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
-
-async function saveQuote(quoteData: any): Promise<string> {
-  'use server';
-  const fs = require('fs');
-
-  const quotesDir = './src/quotes';
-  const filePath = `${quotesDir}/quote-${quoteData.quoteNumber}.json`;
-  try {
-    if (!fs.existsSync(quotesDir)) {
-      fs.mkdirSync(quotesDir, {recursive: true});
-    }
-    await fs.promises.writeFile(filePath, JSON.stringify(quoteData, null, 2));
-    return `Your quote has been saved as quote-${quoteData.quoteNumber}.json`;
-  } catch (error) {
-    console.error('Error saving quote:', error);
-    return `There was an error saving your quote. Please try again.`;
-  }
-}
 
 // Define the schema for the quote form
 const quoteSchema = z.object({

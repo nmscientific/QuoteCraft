@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useTransition, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {saveQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
@@ -91,7 +91,6 @@ const defaultProducts: Product[] = [
 
 export default function CreateQuotePage() {
   const {toast} = useToast();
-  const [isPending, startTransition] = useTransition();
   const [products, setProducts] = useState<
     
     {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
@@ -107,8 +106,13 @@ export default function CreateQuotePage() {
       products: [],
     },
     
-  })
+  });
 
+  const [isQuoteSaved, setIsQuoteSaved] = useState(false);
+  
+  useEffect(() => {
+    setIsQuoteSaved(false);
+  }, []);
 
   const addProduct = (product: Product) => {
     setProducts([
@@ -122,6 +126,7 @@ export default function CreateQuotePage() {
         price: product.squareFootagePrice,
       },
     ]);
+    setIsQuoteSaved(false);
     setSelectedProduct(null); // Reset selected product after adding
   };
 
@@ -129,6 +134,7 @@ export default function CreateQuotePage() {
     const newProducts = [...products];
     newProducts.splice(index, 1);
     setProducts(newProducts);
+    setIsQuoteSaved(false);
   };
 
   const updateProduct = (index: number, field: string, value: number) => {
@@ -136,6 +142,7 @@ export default function CreateQuotePage() {
     // @ts-ignore
     newProducts[index][field] = value;
     setProducts(newProducts);
+    setIsQuoteSaved(false);
   };
 
   const calculateTotal = () => {
@@ -146,6 +153,7 @@ export default function CreateQuotePage() {
     }, 0);
   };
 
+
   const onSubmit = async (values: Quote) => {
     const now = new Date();
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -153,6 +161,7 @@ export default function CreateQuotePage() {
     const yy = now.getFullYear().toString().slice(-2);
     const hh = now.getHours().toString().padStart(2, '0');
     const min = now.getMinutes().toString().padStart(2, '0');
+    console.log('onSubmit');
     const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
     const total = calculateTotal();
 
@@ -165,24 +174,21 @@ export default function CreateQuotePage() {
       total: total
     };
 
-    const result = await saveQuote(quoteData);
-    if (result.success) {
-      setIsQuoteSaved(true);
-      toast({title: 'Quote created successfully!', description: result.message});
-    } else {
-      toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
+    try{
+      const result = await saveQuote(quoteData);
+      if (result.success) {
+        setIsQuoteSaved(true);
+        toast({title: 'Quote created successfully!', description: result.message});
+      } else {
+        toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
       }
+    }catch(e){
+      console.error('error saving quote',e)
+    }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const [isQuoteSaved, setIsQuoteSaved] = useState(false);
-
-  useEffect(() => {
-    setIsQuoteSaved(false);
-  }, []);
+  const handlePrint = () => {    console.log('handlePrint');
+    window.print();  };
 
   return (
     <div className="container py-10">
@@ -259,6 +265,7 @@ export default function CreateQuotePage() {
                   <SelectContent>
                     {defaultProducts.map((product) => (
                       <SelectItem key={product.description} value={product.description}>
+
                         {product.description}
                       </SelectItem>
                     ))}

@@ -262,7 +262,6 @@ export default function CreateQuotePage() {
                 )}
               />
               </div>
-              />
 
               <div>
                 <FormLabel>Products</FormLabel>

@@ -95,16 +95,34 @@ body {
   }
   button {
     display: none !important;
+
   }
 
   .CardContent {
     margin-bottom: .5rem;
   }
-
+.print\:text-center{
+    text-align: center !important;
+}
   .Table {
-    table-layout: fixed;
+    width: 100% !important;
+    table-layout: fixed !important;
     border: none;
   }
+
+  input {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .print\:my-1 {
+    margin-top: .25rem !important;
+    margin-bottom: .25rem !important;
+  }
+}
+.TableBody {
+  line-height: 1.2;
+}
+
 
   .print\:px-0 {
     padding-left: 0 !important;

@@ -198,7 +198,7 @@ export default function CreateQuotePage() {
         <div className='no-print'>
           <CardHeader>
            <h1 className='print:block hidden'>
-            Quote
+            <strong >Quote</strong>
           </h1>
           <CardTitle>Create New Quote</CardTitle>
           <CardDescription>
@@ -216,7 +216,7 @@ export default function CreateQuotePage() {
                 name="customerName"
                 render={({field}) => (                  
                   <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
+                    <FormLabel className='no-print'>Customer Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Customer name" {...field} />
                     </FormControl>
@@ -232,7 +232,7 @@ export default function CreateQuotePage() {
                 name="projectName"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel>Project Name</FormLabel>
+                    <FormLabel className='no-print'>Project Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Project name" {...field} />
                     </FormControl>
@@ -248,7 +248,7 @@ export default function CreateQuotePage() {
                 name="description"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel className='no-print'>Description</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Description" {...field} />
                     </FormControl>
@@ -323,13 +323,13 @@ export default function CreateQuotePage() {
                     {products.map((product, index) => (                      
                       <TableRow key={index} >
                         <TableCell className='print:text-sm'>{product.productDescription}</TableCell>
-                        <TableCell>
+                        <TableCell className='no-print'>
                          
                           <Input
                             type="number"
                             placeholder="0"
                             value={product.lengthFeet}
-                            onChange={e => {
+                            onChange={e => {                              
                               const value = parseFloat(e.target.value);
                               updateProduct(index, 'lengthFeet', isNaN(value) ? 0 : value);
                             }}
@@ -337,7 +337,7 @@ export default function CreateQuotePage() {
                         </TableCell>                        
                         <TableCell>
                           <Input
-                            type="number"
+                          type="number"
                             placeholder="0"
                             value={product.lengthInches}
                             onChange={e => {
@@ -346,7 +346,7 @@ export default function CreateQuotePage() {
                             }}
                           />
                         </TableCell>                        
-                        <TableCell>
+                        <TableCell className='no-print'>
                           <Input
                             type="number"
                             placeholder="0"
@@ -356,7 +356,7 @@ export default function CreateQuotePage() {
                               updateProduct(index, 'widthFeet', isNaN(value) ? 0 : value);
                             }}
                           />
-                        </TableCell>                        
+                        </TableCell>                                              
                         <TableCell>
                           <Input
                             type="number"
@@ -376,7 +376,7 @@ export default function CreateQuotePage() {
                             return (length * width * product.price).toFixed(2);
                           })()}
                         </TableCell>                        
-                        <TableCell>
+                        <TableCell className='print:hidden'>
                         <Button
                             className="print:hidden"
                             variant="destructive"

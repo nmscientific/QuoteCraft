@@ -159,13 +159,13 @@ export default function CreateQuotePage() {
       };
 
       const response = await saveQuote(quoteData);
-      if (response.startsWith('Your')) {
-        toast({title: 'Quote created successfully!', description: response});
+      if (response.success) {
+        toast({title: 'Quote created successfully!', description: response.message});
       } else {
-        toast({variant: 'destructive', title: 'Error saving quote', description: response});
+        toast({variant: 'destructive', title: 'Error saving quote', description: response.message});
       }
     });
-  }
+  };
 
   return (
     <div className="container py-10">

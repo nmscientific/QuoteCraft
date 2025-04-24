@@ -1,0 +1,33 @@
+{
+  "customerName": "Test Customer",
+  "projectName": "Software Test",
+  "description": "Created 4:58pm April 24",
+  "products": [
+    {
+      "productDescription": "Test Product Entry 1",
+      "lengthFeet": 1,
+      "lengthInches": 0,
+      "widthFeet": 1,
+      "widthInches": 0,
+      "price": 1
+    },
+    {
+      "productDescription": "Test Product Entry 2",
+      "lengthFeet": 1,
+      "lengthInches": 0,
+      "widthFeet": 1,
+      "widthInches": 0,
+      "price": 2
+    },
+    {
+      "productDescription": "Test Product Entry 3",
+      "lengthFeet": 1,
+      "lengthInches": 0,
+      "widthFeet": 1,
+      "widthInches": 0,
+      "price": 2
+    }
+  ],
+  "total": 5,
+  "quoteNumber": "0424251715"
+}

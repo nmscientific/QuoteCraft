@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, Suspense} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import logo from '@/public/logo.png';
 import {saveQuote} from '@/app/actions';
@@ -125,6 +125,7 @@ export default function EditQuotePage() {
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
 
+
   const logoImg = logo;
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
@@ -136,11 +137,14 @@ export default function EditQuotePage() {
     },
   });
   const searchParams = useSearchParams();
-  const filename = searchParams.get('filename');
+  
+  
   const router = useRouter();
   const [isQuoteSaved, setIsQuoteSaved] = useState(false);
 
   useEffect(() => {
+      const filename = searchParams.get('filename');
+
     setIsQuoteSaved(false);
 
     const fetchProducts = async () => {
@@ -153,6 +157,7 @@ export default function EditQuotePage() {
     fetchProducts();
   }, []);
 
+  const filename = searchParams.get('filename');
   useEffect(() => {
     const loadQuote = async () => {
       if (filename) {
@@ -186,6 +191,8 @@ export default function EditQuotePage() {
 
     loadQuote();
   }, [filename, form, toast]);
+
+
 
   const addProduct = (product: Product) => {
     setProducts([
@@ -269,6 +276,9 @@ export default function EditQuotePage() {
   };
 
   return (
+    <Suspense fallback={<div></div>}>
+
+    
     <div className="container py-10">
       <Card>
         <CardHeader>
@@ -475,5 +485,6 @@ export default function EditQuotePage() {
         </CardContent>
       </Card>
     </div>
+     </Suspense>
   );
 }

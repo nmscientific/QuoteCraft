@@ -13,22 +13,22 @@ export async function listFiles(dir: string): Promise<string[] | null> {
   }
 }
 
-export async function readFile(filePath: string): Promise<string> {
-    try {
-        const fileContent = await fsPromises.readFile(filePath, 'utf-8');
-        return fileContent;
-    } catch (error) {
-        console.error("Error reading file:", error);
-        throw new Error(`Could not read file ${filePath}`);
-    }
+export async function readFile(filePath: string): Promise<string | null> {
+  try {
+    const fileContent = await fsPromises.readFile(filePath, 'utf-8');
+    return fileContent;
+  } catch (error) {
+    console.error("Error reading file:", error);
+    return null;
+  }
 }
 
 export async function deleteFile(filePath: string): Promise<boolean> {
-    try {
-        await fsPromises.unlink(filePath);
-        return true;
-    } catch (error) {
-        console.error("Error deleting file:", error);
-        return false;
-    }
+  try {
+    await fsPromises.unlink(filePath);
+    return true;
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return false;
+  }
 }

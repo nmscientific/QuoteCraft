@@ -9,10 +9,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from '@/components/ui/alert-dialog';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {useToast} from '@/hooks/use-toast';
-import { listFiles, readFile, deleteFile } from '../server-actions';
+import {listFiles, readFile, deleteFile} from '../server-actions';
+import {useRouter} from 'next/navigation';
 
 // Define a type for the quote data
 type Quote = {
@@ -32,65 +51,87 @@ type Quote = {
 export default function OpenQuotePage() {
   const [quoteFiles, setQuoteFiles] = useState<string[]>([]);
   const [quotesData, setQuotesData] = useState<{[filename: string]: Quote}>({});
-  const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
   const {toast} = useToast();
+  const router = useRouter();
 
   useEffect(() => {
-    const getQuotes = async () => {
+    const loadQuotes = async () => {
       try {
         const files = await listFiles('public/quotes/');
-        if (files) {
-            setQuoteFiles(files.filter((file: string) => file.endsWith('.json')));
-        } else {
-            console.error('Error getting files');
+        if (!files) {
+          console.error('Could not load list of files.');
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load list of files.',
+          });
+          return;
         }
+
+        setQuoteFiles(files.filter(file => file.endsWith('.json')));
+
+        const loadedQuotes: {[filename: string]: Quote} = {};
+        for (const file of files) {
+          if (file.endsWith('.json')) {
+            try {
+              const fileContent = await readFile(`public/quotes/${file}`);
+              if (fileContent) {
+                loadedQuotes[file] = JSON.parse(fileContent);
+              } else {
+                console.warn(`Could not read content of file: ${file}`);
+              }
+            } catch (parseError) {
+              console.error(`Error parsing file ${file}:`, parseError);
+              toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: `Could not parse file ${file}.`,
+              });
+            }
+          }
+        }
+        setQuotesData(loadedQuotes);
       } catch (error) {
-          console.error('Error getting files:', error);
+        console.error('Error loading quotes:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load quotes.',
+        });
       }
     };
 
-    const loadQuotes = async () => {
-        try {
-            const quotes: {[filename: string]: Quote} = {};
-            const files = await listFiles('public/quotes/');
-
-            if (files) {
-                for (const file of files) {
-                  if (file.endsWith('.json')){
-                    const fileContent = await readFile(file);
-                    quotes[file.replace('public/quotes/', '')] = JSON.parse(fileContent);
-                  }
-
-                }
-                // add fileDisplay to the quote object
-                for (const filename in quotes) {
-                  quotes[filename].fileDisplay = filename;
-                }
-
-                setQuotesData(quotes);
-            } else {
-                console.error('Error getting files:');
-            }
-        } catch (error) {
-            console.error('Error loading quotes:', error);
-        }
-    };
-    getQuotes();
     loadQuotes();
-  }, []);
+  }, [toast]);
 
   const handleDeleteQuote = async (filename: string) => {
     try {
-        const result = await deleteFile(`public/quotes/${filename}`);
-        if(result){
-          setQuoteFiles(quoteFiles.filter(file => file !== filename));
-          setQuotesData(prevData => ({ ...prevData, [filename]: undefined}));
-          toast({ title: 'Quote deleted successfully!', description: `Quote ${filename} has been deleted.` });
-        }else{
-          toast({ variant: 'destructive', title: 'Error deleting quote', description: `Error deleting ${filename}.` });
-        }
+      const result = await deleteFile(`public/quotes/${filename}`);
+      if (result) {
+        setQuoteFiles(quoteFiles.filter(file => file !== filename));
+        setQuotesData(prevData => {
+          const newData = {...prevData};
+          delete newData[filename];
+          return newData;
+        });
+        toast({
+          title: 'Quote deleted successfully!',
+          description: `Quote ${filename} has been deleted.`,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error deleting quote',
+          description: `Error deleting ${filename}.`,
+        });
+      }
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error deleting quote', description: `Error deleting ${filename}.` });
+      console.error('Error deleting quote:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error deleting quote',
+        description: `Error deleting ${filename}.`,
+      });
     }
   };
 
@@ -114,43 +155,56 @@ export default function OpenQuotePage() {
                     <TableHead>Customer</TableHead>
                     <TableHead>Project</TableHead>
                     <TableHead>Actions</TableHead>
-                    <TableHead>File Name</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {quoteFiles.map(file => (
-                    <TableRow key={file}>
-                      <TableCell>{quotesData[file]?.customerName}</TableCell>
-                      <TableCell>{quotesData[file]?.projectName}</TableCell>
-                      <TableCell>
-                        <Button variant="outline" onClick={() => {
-
-                          // Implement navigation to edit page with filename
-                          window.location.href = `/edit-quote?filename=${file}`;
-                        }}>
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive">Delete</Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the quote.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteQuote(file)}>Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                      <TableCell>{quotesData[file]?.fileDisplay}</TableCell>
-                    </TableRow>
-                  ))}
+                  {quoteFiles.map(file => {
+                    const quote = quotesData[file];
+                    if (!quote) {
+                      return null; // Skip if quote data is not available
+                    }
+                    return (
+                      <TableRow key={file}>
+                        <TableCell>{file}</TableCell>
+                        <TableCell>{quote.customerName}</TableCell>
+                        <TableCell>{quote.projectName}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              router.push(`/edit-quote?filename=${file}`);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive">Delete</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete the quote.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteQuote(file)}
+                                >
+                                  Continue
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

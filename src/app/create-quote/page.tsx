@@ -1,7 +1,6 @@
 'use client';
 
-import {useState, useEffect, Suspense, ReactNode, useCallback} from 'react';
-import { useSearchParams } from 'next/navigation';
+import {useState, useEffect, } from 'react';
 import logo from '@/public/logo.png';
 import { saveQuote } from '@/app/actions';
 import {Button} from '@/components/ui/button';
@@ -40,7 +39,6 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
-import { readFile } from '../server-actions';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -104,10 +102,9 @@ async function loadProductsFromJson(): Promise<Product[]> {
   }
 }
 
-function SearchParamsWrapper({children, }: { children: ReactNode }) {
+export default function CreateQuotePage() {
   const {toast} = useToast();
-
-    const [products, setProducts] = useState< {
+  const [products, setProducts] = useState< {
       productDescription: string;
       lengthFeet: number;
       lengthInches: number;
@@ -115,7 +112,11 @@ function SearchParamsWrapper({children, }: { children: ReactNode }) {
       widthInches: number;
       price: number;
     }[] >([]);
-  const searchParams = useSearchParams();
+
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+
+  const logoImg = logo;
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
     defaultValues: {
@@ -123,90 +124,12 @@ function SearchParamsWrapper({children, }: { children: ReactNode }) {
       projectName: '',
       description: '',
       products: [],
-
     },
 
   });
-  useEffect(() => {
-    const quoteFilename = searchParams.get('quoteFilename');
-    const edit = searchParams.get('edit');
 
-    if (!edit) {
-      return;
-    }
-
-    const loadQuote = async () => {
-      try {
-        const fileContent = await readFile(`public/quotes/${quoteFilename}`);
-        const quote = JSON.parse(fileContent);
-        form.setValue('customerName', quote.customerName);
-        form.setValue('projectName', quote.projectName);
-        form.setValue('description', quote.description);
-        setProducts(quote.products);
-
-      } catch (error) {
-        console.error('Error loading quote:', error);
-      }};
-    loadQuote();}, [searchParams, form, toast]);
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
-  useEffect(() => {
-
-    const fetchProducts = async () => {
-      try {
-        const initialProducts = await loadProductsFromJson();
-        setAvailableProducts(initialProducts);
-      } catch (error) {
-      }
-    }
-    fetchProducts();
-  }, []);
-
-
-  const addProduct = useCallback((product: Product) => {
-    setProducts([
-      ...products,
-      {
-        productDescription: product.description,
-        lengthFeet: 0,
-        lengthInches: 0,
-        widthFeet: 0,
-        widthInches: 0,
-        price: product.squareFootagePrice,
-      },
-    ]);
-    setSelectedProduct(null); // Reset selected product after adding
-  },[products]);
-
-  const removeProduct = useCallback((index: number) => {
-    const newProducts = [...products];
-    newProducts.splice(index, 1);
-    setProducts(newProducts);
-  },[products]);
-
-  const updateProduct = useCallback((index: number, field: string, value: number) => {
-    const newProducts = [...products];
-    // @ts-ignore
-    newProducts[index][field] = value;
-    setProducts(newProducts);
-  }, [products]);
-
-  const calculateTotal = useCallback(() => {
-    return products.reduce((total, product) => {
-      const length = product.lengthFeet + product.lengthInches / 12;
-      const width = product.widthFeet + product.widthInches / 12;
-      return total + length * width * product.price;
-    }, 0);
-  }, [products]);
-
-  return <>{children({form, products, selectedProduct, setSelectedProduct, availableProducts, addProduct, removeProduct, updateProduct, calculateTotal, toast})}</>;
-}
-export default function CreateQuotePage() {
-  const logoImg = logo; 
-
-  
   const [isQuoteSaved, setIsQuoteSaved] = useState(false);
-  
+
   useEffect(() => {
     setIsQuoteSaved(false);
 
@@ -218,11 +141,46 @@ export default function CreateQuotePage() {
       }
     }
     fetchProducts();
-  }, [ ]);
+  }, []);
 
-  
+  const addProduct = (product: Product) => {
+    setProducts([
+      ...products,
+      {
+        productDescription: product.description,
+        lengthFeet: 0,
+        lengthInches: 0,
+        widthFeet: 0,
+        widthInches: 0,
+        price: product.squareFootagePrice,
+      },
+    ]);
+    setIsQuoteSaved(false);
+    setSelectedProduct(null); // Reset selected product after adding
+  };
 
- 
+  const removeProduct = (index: number) => {
+    const newProducts = [...products];
+    newProducts.splice(index, 1);
+    setProducts(newProducts);
+    setIsQuoteSaved(false);
+  };
+
+  const updateProduct = (index: number, field: string, value: number) => {
+    const newProducts = [...products];
+    // @ts-ignore
+    newProducts[index][field] = value;
+    setProducts(newProducts);
+    setIsQuoteSaved(false);
+  };
+
+  const calculateTotal = () => {
+    return products.reduce((total, product) => {
+      const length = product.lengthFeet + product.lengthInches / 12;
+      const width = product.widthFeet + product.widthInches / 12;
+      return total + length * width * product.price;
+    }, 0);
+  };
 
 
   const onSubmit = async (values: Quote) => {
@@ -232,7 +190,7 @@ export default function CreateQuotePage() {
     const yy = now.getFullYear().toString().slice(-2);
     const hh = now.getHours().toString().padStart(2, '0');
     const min = now.getMinutes().toString().padStart(2, '0');
-      console.log('onSubmit');
+    console.log('onSubmit');
       const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
       const total = calculateTotal();
 
@@ -248,8 +206,6 @@ export default function CreateQuotePage() {
     try{
       const result = await saveQuote(quoteData);
       if (result.success) {
-        
-
         setIsQuoteSaved(true);
         toast({title: 'Quote created successfully!', description: result.message});
       } else {
@@ -265,12 +221,8 @@ export default function CreateQuotePage() {
   };
 
   return (
-    
-    <div className="container py-10">
-    <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsWrapper>
-          {({form, products, selectedProduct, setSelectedProduct, availableProducts, addProduct, removeProduct, updateProduct, calculateTotal, toast})=> (
 
+    <div className="container py-10">
       <Card>
           <CardHeader>
             <img src={logoImg.src} alt="Logo" className='h-10 w-10 print:hidden' />
@@ -283,7 +235,7 @@ export default function CreateQuotePage() {
             </CardTitle>
             <CardDescription className='no-print'>
               Enter the details for your new quote.
-          </CardDescription>          
+          </CardDescription>
         </div>
         </CardHeader>
         <CardContent className="grid gap-4 print:mb-2">
@@ -378,9 +330,9 @@ export default function CreateQuotePage() {
                   Add Product
                 </Button>
               </div>
-             
-              <div className="relative overflow-x-auto shadow-md sm:rounded-lg">                
-                <Table                 
+
+              <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <Table
                   className={cn({
                     'print:table': isQuoteSaved,
                     'print:w-auto': isQuoteSaved
@@ -397,12 +349,12 @@ export default function CreateQuotePage() {
                       <TableHead>Total</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow> </TableHeader>
-                  <TableBody> 
-                    {products.map((product, index) => (                   
+                  <TableBody>
+                    {products.map((product, index) => (
                       <TableRow key={index} className='print:my-1'>
                         <TableCell className='print:text-sm print:p-0'>{product.productDescription}</TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0'>
-                         {product.lengthFeet}                         
+                         {product.lengthFeet}
                         </TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0' >
                           {product.lengthInches}
@@ -420,12 +372,12 @@ export default function CreateQuotePage() {
                               })()}
                         </TableCell>
 
-                        
-                        
-                        <TableCell className='print:hidden'> 
+
+
+                        <TableCell className='print:hidden'>
                         <Button
-                            variant="destructive"                           
-                            onClick={() => removeProduct(index)}>                         
+                            variant="destructive"
+                            onClick={() => removeProduct(index)}>
                             <Trash className="h-4 w-4" />
                           </Button>
                          </TableCell>
@@ -447,16 +399,12 @@ export default function CreateQuotePage() {
                    <Button type="button" onClick={handlePrint}>Print Quote</Button>
                 </>
               )}</div>
-              
-              
+
             </form>
           </Form>
-        </CardContent>      
-          </SearchParamsWrapper>
+        </CardContent>
       </Card>
-     )}
-     </Suspense></div>);
-    )}
-   
-    );
+    </div>
+
+  );
 }

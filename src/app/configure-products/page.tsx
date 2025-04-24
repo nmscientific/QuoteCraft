@@ -48,27 +48,18 @@ const productSchema = z.object({
 
 type Product = z.infer<typeof productSchema>;
 
-const defaultProducts: Product[] = [
-  {
-    description: 'Standard Glass',
-    squareFootagePrice: 2.5,
-    dimensions: '1/4 inch',
-  },
-  {
-    description: 'Tempered Glass',
-    squareFootagePrice: 3.5,
-    dimensions: '1/4 inch',
-  },
-];
-
-async function loadProducts(): Promise<Product[]> {
+async function loadProductsFromJson(): Promise<Product[]> {
   try {
-    const response = await fetch('/api/products', {
+    const response = await fetch('/products.json', {
       method: 'GET',
       headers: {'Content-Type': 'application/json'},
     });
 
     if (!response.ok) {
+        if (response.status === 404) {
+            console.warn('products.json not found. Using an empty array.');
+            return []; // Return an empty array if the file is not found
+        }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -77,6 +68,25 @@ async function loadProducts(): Promise<Product[]> {
   } catch (error: any) {
     console.error('Error loading products from API:', error);
     return [];
+  }
+}
+
+async function loadProducts(): Promise<Product[]> {
+  try {
+    const products = await loadProductsFromJson();
+
+    if (products.length === 0) {
+      console.warn(
+        'products.json empty or not loaded. Using an empty array.'
+      );
+    }
+
+    return products;
+  } catch (error: any) {
+    console.error(
+      'Error loading products data, error parsing the json or fetch failed.', error
+    );
+    return []; // Return an empty array in case of any error
   }
 }
 
@@ -98,7 +108,7 @@ async function saveProducts(products: Product[]): Promise<void> {
 }
 
 export default function ConfigureProductsPage() {
-  const [products, setProducts] = useState<Product[]>(defaultProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const {toast} = useToast();
 
   const form = useForm<Product>({
@@ -114,7 +124,7 @@ export default function ConfigureProductsPage() {
     const fetchProducts = async () => {
       try {
         const initialProducts = await loadProducts();
-        setProducts(initialProducts.length > 0 ? initialProducts : defaultProducts);
+        setProducts(initialProducts.length > 0 ? initialProducts : []);
         if (initialProducts.length === 0){
             toast({
               variant: 'destructive',
@@ -129,7 +139,7 @@ export default function ConfigureProductsPage() {
           title: 'Error',
           description: error.message || 'Could not load product list.',
         });
-        setProducts(defaultProducts);        
+        setProducts([]);        
       }
     };
 

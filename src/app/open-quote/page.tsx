@@ -12,6 +12,7 @@ import {
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger} from '@/components/ui/alert-dialog';
 import {useToast} from '@/hooks/use-toast';
+import { listFiles, readFile, deleteFile } from '../server-actions';
 
 // Define a type for the quote data
 type Quote = {
@@ -35,51 +36,56 @@ export default function OpenQuotePage() {
   const {toast} = useToast();
 
   useEffect(() => {
-    // Placeholder for loading quotes from a server action or API route
-    const mockQuoteFiles = ['quote1.json', 'quote2.json']; // Replace with actual data fetching
-    const mockQuotesData: {[filename: string]: Quote} = {
-      'quote1.json': {
-        customerName: 'John Doe',
-        projectName: 'Sample Project 1',
-        description: 'A sample quote',
-        products: [
-          {
-            productDescription: 'Standard Glass',
-            lengthFeet: 10,
-            lengthInches: 0,
-            widthFeet: 5,
-            widthInches: 0,
-            price: 2.5,
-          },
-        ],
-      },
-      'quote2.json': {
-        customerName: 'Jane Smith',
-        projectName: 'Sample Project 2',
-        description: 'Another sample quote',
-        products: [
-          {
-            productDescription: 'Tempered Glass',
-            lengthFeet: 8,
-            lengthInches: 6,
-            widthFeet: 4,
-            widthInches: 6,
-            price: 3.5,
-          },
-        ],
-      },
+    const getQuotes = async () => {
+      try {
+        const files = await listFiles('src/quotes/');
+        if (files) {            
+            setQuoteFiles(files.filter((file: string) => file.endsWith('.json')));
+        } else {
+            console.error('Error getting files');
+        }
+      } catch (error) {
+          console.error('Error getting files:', error);
+      }
     };
-    setQuoteFiles(mockQuoteFiles);
-    setQuotesData(mockQuotesData);
+
+    const loadQuotes = async () => {
+        try {
+            const quotes: {[filename: string]: Quote} = {};
+            const files = await listFiles('src/quotes/');
+
+            if (files) {                
+                for (const file of files) {
+                  if (file.endsWith('.json')){
+                    const fileContent = await readFile(file);
+                    quotes[file.replace('src/quotes/', '')] = JSON.parse(fileContent);
+                  }
+                }
+                setQuotesData(quotes);
+            } else {
+                console.error('Error getting files:');
+            }
+        } catch (error) {
+            console.error('Error loading quotes:', error);
+        }
+    };
+    getQuotes();
+    loadQuotes();
   }, []);
 
-  const handleDeleteQuote = async (filename: string) => {
-    // Placeholder for deleting quote using a server action or API route
-    console.log(`Deleting quote: ${filename}`);
-    toast({
-      title: 'Quote deleted successfully!',
-      description: `Quote ${filename} has been deleted.`,
-    });
+  const handleDeleteQuote = async (filename: string) => {    
+    try {
+        const result = await deleteFile(`src/quotes/${filename}`);
+        if(result){
+          setQuoteFiles(quoteFiles.filter(file => file !== filename));
+          setQuotesData(prevData => ({ ...prevData, [filename]: undefined}));
+          toast({ title: 'Quote deleted successfully!', description: `Quote ${filename} has been deleted.` });
+        }else{
+          toast({ variant: 'destructive', title: 'Error deleting quote', description: `Error deleting ${filename}.` });
+        }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error deleting quote', description: `Error deleting ${filename}.` });
+    }
   };
 
   return (
@@ -146,3 +152,4 @@ export default function OpenQuotePage() {
     </div>
   );
 }
+

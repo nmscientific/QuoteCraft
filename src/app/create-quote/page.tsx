@@ -2,7 +2,7 @@
 
 import {useState, useEffect, } from 'react';
 import logo from '@/public/logo.png';
-import {saveQuote} from '@/app/actions';
+import { saveQuote } from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -69,6 +69,7 @@ const quoteSchema = z.object({
   ),
 });
 
+
 type Quote = z.infer<typeof quoteSchema>;
 
 // Define a type for the products.  This is temporary, we will be fetching the products in a future step.
@@ -78,26 +79,42 @@ type Product = {
   dimensions?: string;
 };
 
-const defaultProducts: Product[] = [
-  {
-    description: 'Standard Glass',
-    squareFootagePrice: 2.5,
-    dimensions: '1/4 inch',
-  },
-  {
-    description: 'Tempered Glass',
-    squareFootagePrice: 3.5,
-    dimensions: '1/4 inch',
-  },
-];
+async function loadProductsFromJson(): Promise<Product[]> {
+  try {
+    const response = await fetch('/products.json', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.warn('products.json not found. Using an empty array.');
+        return []; // Return an empty array if the file is not found
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as Product[];
+  } catch (error: any) {
+    console.error('Error loading products from API:', error);
+    return [];
+  }
+}
 
 export default function CreateQuotePage() {
   const {toast} = useToast();
-  const [products, setProducts] = useState<
-    
-    {productDescription: string; lengthFeet: number; lengthInches: number; widthFeet: number; widthInches: number; price: number}[]
-  >([]);
+  const [products, setProducts] = useState< {
+      productDescription: string;
+      lengthFeet: number;
+      lengthInches: number;
+      widthFeet: number;
+      widthInches: number;
+      price: number;
+    }[] >([]);
+
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
   const logoImg = logo; 
   const form = useForm<Quote>({
@@ -115,6 +132,15 @@ export default function CreateQuotePage() {
   
   useEffect(() => {
     setIsQuoteSaved(false);
+
+    const fetchProducts = async () => {
+      try {
+        const initialProducts = await loadProductsFromJson();
+        setAvailableProducts(initialProducts);
+      } catch (error) {
+      }
+    }
+    fetchProducts();
   }, []);
 
   const addProduct = (product: Product) => {
@@ -278,11 +304,11 @@ export default function CreateQuotePage() {
                     <SelectValue className='no-print' placeholder="Select a product" value={selectedProduct || undefined} />
                   </SelectTrigger>
                   <SelectContent>
-                    {defaultProducts.map((product) => (
+                    {availableProducts.map((product) => (
                       <SelectItem key={product.description} value={product.description}>
-                       
                         {product.description}
                       </SelectItem>
+
                     ))}
                   </SelectContent>
                 </Select>
@@ -291,7 +317,7 @@ export default function CreateQuotePage() {
                   className="print:hidden"
                   size="sm"
                   onClick={() =>{
-                    const product = defaultProducts.find(p => p.description === selectedProduct);
+                    const product = availableProducts.find(p => p.description === selectedProduct);
                     if (product) {
                       addProduct(product);
                     } else {
@@ -304,8 +330,6 @@ export default function CreateQuotePage() {
                   Add Product
                 </Button>
               </div>
-
-            
              
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">                
                 <Table                 
@@ -342,11 +366,13 @@ export default function CreateQuotePage() {
                         <TableCell className='print:text-sm print:p-0'>${product.price.toFixed(2)}</TableCell>
                         <TableCell className='print:text-sm print:p-0'>
                           ${(() => {
-                            const length = product.lengthFeet + product.lengthInches / 12;
-                            const width = product.widthFeet + product.widthInches / 12;
-                            return (length * width * product.price).toFixed(2);
-                          })()}
+                                const length = product.lengthFeet + product.lengthInches / 12;
+                                const width = product.widthFeet + product.widthInches / 12;
+                                return (length * width * product.price).toFixed(2);
+                              })()}
                         </TableCell>
+
+                        
                         
                         <TableCell className='print:hidden'> 
                         <Button

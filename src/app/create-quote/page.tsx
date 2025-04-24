@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, } from 'react';
+import {useState, useEffect, Suspense} from 'react';
 import { useSearchParams } from 'next/navigation';
 import logo from '@/public/logo.png';
 import { saveQuote } from '@/app/actions';
@@ -104,6 +104,39 @@ async function loadProductsFromJson(): Promise<Product[]> {
   }
 }
 
+function SearchParamsWrapper({children}: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const {toast} = useToast();
+  const form = useForm<Quote>({
+    resolver: zodResolver(quoteSchema),
+    defaultValues: {
+      customerName: '',
+      projectName: '',
+      description: '',
+      products: [],
+    },
+  });
+  useEffect(() => {
+    const quoteFilename = searchParams.get('quoteFilename');
+    const edit = searchParams.get('edit');
+
+    if (!edit) {
+      return;
+    }
+
+    const loadQuote = async () => {
+      try {
+        const fileContent = await readFile(`public/quotes/${quoteFilename}`);
+        const quote = JSON.parse(fileContent);
+        form.setValue('customerName', quote.customerName);
+        form.setValue('projectName', quote.projectName);
+        form.setValue('description', quote.description);
+      } catch (error) {
+        console.error('Error loading quote:', error);
+      }};
+    loadQuote();}, [searchParams, form, toast]);
+  return <>{children}</>;
+}
 export default function CreateQuotePage() {
   const {toast} = useToast();
   const [products, setProducts] = useState< {
@@ -119,7 +152,7 @@ export default function CreateQuotePage() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
-  const searchParams = useSearchParams();
+  
   const logoImg = logo; 
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
@@ -148,31 +181,7 @@ export default function CreateQuotePage() {
   }, []);
 
   useEffect(() => {
-    const quoteFilename = searchParams.get('quoteFilename');
-    const edit = searchParams.get('edit');
-
-    if (!edit) {
-      return;
-    }
-
-    const loadQuote = async () => {
-      try {
-        const fileContent = await readFile(`public/quotes/${quoteFilename}`);
-        const quote = JSON.parse(fileContent);
-
-        form.setValue('customerName', quote.customerName);
-        form.setValue('projectName', quote.projectName);
-        form.setValue('description', quote.description);
-        setProducts(quote.products);
-      } catch (error) {
-        console.error('Error loading quote:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load quote.',
-        });
-      }};
-    loadQuote();}, [searchParams, form, toast]);
+  }, [setProducts]);
 
   const addProduct = (product: Product) => {
     setProducts([
@@ -254,6 +263,8 @@ export default function CreateQuotePage() {
   return (
     
     <div className="container py-10">
+    <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsWrapper>
       <Card>
           <CardHeader>
             <img src={logoImg.src} alt="Logo" className='h-10 w-10 print:hidden' />
@@ -434,6 +445,8 @@ export default function CreateQuotePage() {
             </form>
           </Form>
         </CardContent>
+        </SearchParamsWrapper>
+      </Suspense>
       </Card>
     </div>
     

@@ -27,7 +27,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableCaption,
   TableHead,
   TableHeader,
   TableRow,
@@ -326,7 +325,7 @@ export default function CreateQuotePage({ searchParams }: { searchParams: { [key
                   <FormItem>
                     <FormLabel className='no-print'>Description</FormLabel>
                     <FormControl >
-                      <Textarea placeholder="Description" {...field}   {...(isViewMode ? { disabled: true } : {})} {...field} />
+                      <Textarea placeholder="Description" {...field}   {...(isViewMode ? { disabled: true } : {})} />
                     </FormControl>
                     <FormDescription className='no-print'>
                       Enter a description for the quote.
@@ -386,16 +385,18 @@ export default function CreateQuotePage({ searchParams }: { searchParams: { [key
                   })}
                 >
                   <TableCaption>List of selected products</TableCaption>
-                  <TableHeader> <TableRow>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Length (Ft)</TableHead>
-                      <TableHead >Length (In)</TableHead>
-                      <TableHead>Width (Ft)</TableHead>
-                      <TableHead>Width (In)</TableHead>
-                      <TableHead>Price/Sq. Ft.</TableHead>
-                      <TableHead>Total</TableHead>
-                      {!isViewMode && <TableHead>Actions</TableHead>}
-                    </TableRow> </TableHeader>
+                  <TableHeader>
+                      <TableRow>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Length (Ft)</TableHead>
+                        <TableHead >Length (In)</TableHead>
+                        <TableHead>Width (Ft)</TableHead>
+                        <TableHead>Width (In)</TableHead>
+                        <TableHead>Price/Sq. Ft.</TableHead>
+                        <TableHead>Total</TableHead>
+                        {!isViewMode && <TableHead>Actions</TableHead>}
+                      </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {products.map((product, index) => (
                       <TableRow key={index} className='print:my-1'>

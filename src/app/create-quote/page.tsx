@@ -455,11 +455,9 @@ export default function CreateQuotePage() {
         </CardContent>
         </SearchParamsWrapper>
       </Suspense>
-      </Card>
-    </div>
-    
+      </Card>    </div>
   );
     )}
     </SearchParamsWrapper>
-    </Suspense></div>);
+    </Suspense>);
 }

@@ -136,8 +136,8 @@ export default function EditQuotePage() {
       products: [],
     },
   });
-  const searchParams = useSearchParams();
   
+
   
   const router = useRouter();
   const [isQuoteSaved, setIsQuoteSaved] = useState(false);
@@ -157,9 +157,10 @@ export default function EditQuotePage() {
     fetchProducts();
   }, []);
 
-  const filename = searchParams.get('filename');
   useEffect(() => {
     const loadQuote = async () => {
+      const searchParams = useSearchParams();
+      const filename = searchParams.get('filename');
       if (filename) {
         try {
           const fileContent = await readFile(`public/quotes/${filename}`);
@@ -190,7 +191,7 @@ export default function EditQuotePage() {
     };
 
     loadQuote();
-  }, [filename, form, toast]);
+  }, [form, toast]);
 
 
 
@@ -276,7 +277,8 @@ export default function EditQuotePage() {
   };
 
   return (
-    <Suspense fallback={<div></div>}>
+      <Suspense fallback={<div></div>}>
+      {() => {const searchParams = useSearchParams();
 
     
     <div className="container py-10">
@@ -485,6 +487,6 @@ export default function EditQuotePage() {
         </CardContent>
       </Card>
     </div>
-     </Suspense>
+    }}</Suspense>
   );
 }

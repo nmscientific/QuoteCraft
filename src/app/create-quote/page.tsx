@@ -1,6 +1,7 @@
 'use client';
 
 import {useState, useEffect, } from 'react';
+import { useSearchParams } from 'next/navigation';
 import logo from '@/public/logo.png';
 import { saveQuote } from '@/app/actions';
 import {Button} from '@/components/ui/button';
@@ -39,6 +40,7 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
+import { readFile } from '../server-actions';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -105,6 +107,7 @@ async function loadProductsFromJson(): Promise<Product[]> {
 export default function CreateQuotePage() {
   const {toast} = useToast();
   const [products, setProducts] = useState< {
+
       productDescription: string;
       lengthFeet: number;
       lengthInches: number;
@@ -116,6 +119,7 @@ export default function CreateQuotePage() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
+  const searchParams = useSearchParams();
   const logoImg = logo; 
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
@@ -142,6 +146,33 @@ export default function CreateQuotePage() {
     }
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const quoteFilename = searchParams.get('quoteFilename');
+    const edit = searchParams.get('edit');
+
+    if (!edit) {
+      return;
+    }
+
+    const loadQuote = async () => {
+      try {
+        const fileContent = await readFile(`public/quotes/${quoteFilename}`);
+        const quote = JSON.parse(fileContent);
+
+        form.setValue('customerName', quote.customerName);
+        form.setValue('projectName', quote.projectName);
+        form.setValue('description', quote.description);
+        setProducts(quote.products);
+      } catch (error) {
+        console.error('Error loading quote:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load quote.',
+        });
+      }};
+    loadQuote();}, [searchParams, form, toast]);
 
   const addProduct = (product: Product) => {
     setProducts([

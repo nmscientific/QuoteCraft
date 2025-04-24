@@ -60,7 +60,13 @@ export default function OpenQuotePage() {
                     const fileContent = await readFile(file);
                     quotes[file.replace('src/quotes/', '')] = JSON.parse(fileContent);
                   }
+                  
                 }
+                // add fileDisplay to the quote object
+                for (const filename in quotes) {
+                  quotes[filename].fileDisplay = filename;
+                }
+
                 setQuotesData(quotes);
             } else {
                 console.error('Error getting files:');
@@ -105,19 +111,20 @@ export default function OpenQuotePage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Filename</TableHead>
-                    <TableHead>Customer Name</TableHead>
-                    <TableHead>Project Name</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Project</TableHead>
                     <TableHead>Actions</TableHead>
+                    <TableHead>File Name</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {quoteFiles.map(file => (
                     <TableRow key={file}>
-                      <TableCell>{file}</TableCell>
                       <TableCell>{quotesData[file]?.customerName}</TableCell>
                       <TableCell>{quotesData[file]?.projectName}</TableCell>
                       <TableCell>
                         <Button variant="outline" onClick={() => {
+
                           // Implement navigation to edit page with filename
                           window.location.href = `/edit-quote?filename=${file}`;
                         }}>
@@ -141,6 +148,7 @@ export default function OpenQuotePage() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </TableCell>
+                      <TableCell>{quotesData[file]?.fileDisplay}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

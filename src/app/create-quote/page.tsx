@@ -39,6 +39,8 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
 import {readFile} from '../server-actions';
+import { useSearchParams } from 'next/navigation';
+import React from 'react';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -102,7 +104,7 @@ async function loadProductsFromJson(): Promise<Product[]> {
   }
 }
 
-export default function CreateQuotePage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default function CreateQuotePage() {
   const {toast} = useToast();
   const [products, setProducts] = useState< {
       productDescription: string;
@@ -129,7 +131,11 @@ export default function CreateQuotePage({ searchParams }: { searchParams: { [key
 
   });
 
-  const { quoteFilename, edit, view } = searchParams;
+  const searchParams = useSearchParams();
+  const quoteFilename = searchParams.get('quoteFilename');
+  const edit = searchParams.get('edit');
+  const view = searchParams.get('view');
+
   const isEditMode = edit === 'true';
   const isViewMode = view === 'true';
 

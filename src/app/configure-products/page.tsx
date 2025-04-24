@@ -35,6 +35,7 @@ import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect} from 'react';
+import fs from 'fs/promises';
 
 const productSchema = z.object({
   description: z.string().min(2, {
@@ -75,24 +76,36 @@ export default function ConfigureProductsPage() {
   });
 
   useEffect(() => {
-    // Load products from local storage on initial render
-    const storedProducts = localStorage.getItem('products');
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts));
-    }
+    const loadProducts = async () => {
+      try {
+        const data = await fs.readFile('src/products.json', 'utf-8');
+        const parsedProducts = JSON.parse(data) as Product[];
+        setProducts(parsedProducts);
+      } catch (error) {
+        console.error('Error loading products from file:', error);
+      }
+    };
+
+    loadProducts();
   }, []);
 
-  useEffect(() => {
-    // Save products to local storage whenever products change
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
-
-  function onSubmit(values: Product) {
-    setProducts([...products, values]);
-    form.reset();
-    toast({
-      title: 'Product added successfully!',
-      description: 'Your product has been added to the list.',
+  async function onSubmit(values: Product) {
+    try {
+      const updatedProducts = [...products, values];
+      await fs.writeFile(
+        'src/products.json',
+        JSON.stringify(updatedProducts),
+        'utf-8'
+      );
+      setProducts(updatedProducts);
+      form.reset();
+      toast({
+        title: 'Product added successfully!',
+        description: 'Your product has been added to the list.',
+      });
+    } catch (error) {
+      console.error('Error saving products to file:', error);
+      toast({variant: 'destructive', title:'Error', description:'Could not save product to the list.'})
     });
   }
 

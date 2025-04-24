@@ -172,7 +172,9 @@ export default function OpenQuotePage() {
                           <Button
                             variant="outline"
                             onClick={() => {
-                              router.push(`/edit-quote?filename=${file}`);
+                              router.push(
+                                `/create-quote?edit=true&quoteFilename=${file}`,
+                              );
                             }}
                           >
                             Edit

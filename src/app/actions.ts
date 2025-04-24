@@ -23,7 +23,7 @@ export async function saveQuote(quoteData: Quote) {
     quoteNumber,
   };
 
-  const quotesDir = './public/quotes';
+  const quotesDir = 'public/quotes';
   const filePath = `${quotesDir}/quote-${quoteNumber}.json`;
 
   try {

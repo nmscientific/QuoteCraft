@@ -13,5 +13,10 @@
     "description": "Test Product Entry 3",
     "squareFootagePrice": 2,
     "dimensions": "1/3"
+  },
+  {
+    "description": "Test Product Entry 4",
+    "squareFootagePrice": 4,
+    "dimensions": "added on studio"
   }
 ]

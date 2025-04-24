@@ -268,8 +268,7 @@ export default function CreateQuotePage() {
     
     <div className="container py-10">
     <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsWrapper >
-
+        <SearchParamsWrapper>
           {({form, products, selectedProduct, setSelectedProduct, availableProducts, addProduct, removeProduct, updateProduct, calculateTotal, toast})=> (
 
       <Card>
@@ -452,12 +451,12 @@ export default function CreateQuotePage() {
               
             </form>
           </Form>
-        </CardContent>
-        </SearchParamsWrapper>
-      </Suspense>
-      </Card>    </div>
-  );
+        </CardContent>      
+          </SearchParamsWrapper>
+      </Card>
+     )}
+     </Suspense></div>);
     )}
-    </SearchParamsWrapper>
-    </Suspense>);
+   
+    );
 }

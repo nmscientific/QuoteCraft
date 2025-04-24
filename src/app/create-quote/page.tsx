@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, Suspense, ReactNode} from 'react';
+import {useState, useEffect, Suspense, ReactNode, useCallback} from 'react';
 import { useSearchParams } from 'next/navigation';
 import logo from '@/public/logo.png';
 import { saveQuote } from '@/app/actions';
@@ -104,9 +104,18 @@ async function loadProductsFromJson(): Promise<Product[]> {
   }
 }
 
-function SearchParamsWrapper({children}: { children: ReactNode }) {
-  const searchParams = useSearchParams();
+function SearchParamsWrapper({children, }: { children: ReactNode }) {
   const {toast} = useToast();
+
+    const [products, setProducts] = useState< {
+      productDescription: string;
+      lengthFeet: number;
+      lengthInches: number;
+      widthFeet: number;
+      widthInches: number;
+      price: number;
+    }[] >([]);
+  const searchParams = useSearchParams();
   const form = useForm<Quote>({
     resolver: zodResolver(quoteSchema),
     defaultValues: {
@@ -114,7 +123,9 @@ function SearchParamsWrapper({children}: { children: ReactNode }) {
       projectName: '',
       description: '',
       products: [],
+
     },
+
   });
   useEffect(() => {
     const quoteFilename = searchParams.get('quoteFilename');
@@ -131,40 +142,69 @@ function SearchParamsWrapper({children}: { children: ReactNode }) {
         form.setValue('customerName', quote.customerName);
         form.setValue('projectName', quote.projectName);
         form.setValue('description', quote.description);
+        setProducts(quote.products);
+
       } catch (error) {
         console.error('Error loading quote:', error);
       }};
     loadQuote();}, [searchParams, form, toast]);
-  return <>{children}</>;
-}
-export default function CreateQuotePage() {
-  const {toast} = useToast();
-  const [products, setProducts] = useState< {
-
-      productDescription: string;
-      lengthFeet: number;
-      lengthInches: number;
-      widthFeet: number;
-      widthInches: number;
-      price: number;
-    }[] >([]);
-
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  useEffect(() => {
+
+    const fetchProducts = async () => {
+      try {
+        const initialProducts = await loadProductsFromJson();
+        setAvailableProducts(initialProducts);
+      } catch (error) {
+      }
+    }
+    fetchProducts();
+  }, []);
+
+
+  const addProduct = useCallback((product: Product) => {
+    setProducts([
+      ...products,
+      {
+        productDescription: product.description,
+        lengthFeet: 0,
+        lengthInches: 0,
+        widthFeet: 0,
+        widthInches: 0,
+        price: product.squareFootagePrice,
+      },
+    ]);
+    setSelectedProduct(null); // Reset selected product after adding
+  },[products]);
+
+  const removeProduct = useCallback((index: number) => {
+    const newProducts = [...products];
+    newProducts.splice(index, 1);
+    setProducts(newProducts);
+  },[products]);
+
+  const updateProduct = useCallback((index: number, field: string, value: number) => {
+    const newProducts = [...products];
+    // @ts-ignore
+    newProducts[index][field] = value;
+    setProducts(newProducts);
+  }, [products]);
+
+  const calculateTotal = useCallback(() => {
+    return products.reduce((total, product) => {
+      const length = product.lengthFeet + product.lengthInches / 12;
+      const width = product.widthFeet + product.widthInches / 12;
+      return total + length * width * product.price;
+    }, 0);
+  }, [products]);
+
+  return <>{children({form, products, selectedProduct, setSelectedProduct, availableProducts, addProduct, removeProduct, updateProduct, calculateTotal, toast})}</>;
+}
+export default function CreateQuotePage() {
+  const logoImg = logo; 
 
   
-  const logoImg = logo; 
-  const form = useForm<Quote>({
-    resolver: zodResolver(quoteSchema),
-    defaultValues: {
-      customerName: '',
-      projectName: '',
-      description: '',
-      products: [],
-    },
-    
-  });
-
   const [isQuoteSaved, setIsQuoteSaved] = useState(false);
   
   useEffect(() => {
@@ -178,49 +218,11 @@ export default function CreateQuotePage() {
       }
     }
     fetchProducts();
-  }, []);
+  }, [ ]);
 
-  useEffect(() => {
-  }, [setProducts]);
+  
 
-  const addProduct = (product: Product) => {
-    setProducts([
-      ...products,
-      {
-        productDescription: product.description,
-        lengthFeet: 0,
-        lengthInches: 0,
-        widthFeet: 0,
-        widthInches: 0,
-        price: product.squareFootagePrice,
-      },
-    ]);
-    setIsQuoteSaved(false);
-    setSelectedProduct(null); // Reset selected product after adding
-  };
-
-  const removeProduct = (index: number) => {
-    const newProducts = [...products];
-    newProducts.splice(index, 1);
-    setProducts(newProducts);
-    setIsQuoteSaved(false);
-  };
-
-  const updateProduct = (index: number, field: string, value: number) => {
-    const newProducts = [...products];
-    // @ts-ignore
-    newProducts[index][field] = value;
-    setProducts(newProducts);
-    setIsQuoteSaved(false);
-  };
-
-  const calculateTotal = () => {
-    return products.reduce((total, product) => {
-      const length = product.lengthFeet + product.lengthInches / 12;
-      const width = product.widthFeet + product.widthInches / 12;
-      return total + length * width * product.price;
-    }, 0);
-  };
+ 
 
 
   const onSubmit = async (values: Quote) => {
@@ -230,7 +232,7 @@ export default function CreateQuotePage() {
     const yy = now.getFullYear().toString().slice(-2);
     const hh = now.getHours().toString().padStart(2, '0');
     const min = now.getMinutes().toString().padStart(2, '0');
-    console.log('onSubmit');
+      console.log('onSubmit');
       const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
       const total = calculateTotal();
 
@@ -246,6 +248,8 @@ export default function CreateQuotePage() {
     try{
       const result = await saveQuote(quoteData);
       if (result.success) {
+        
+
         setIsQuoteSaved(true);
         toast({title: 'Quote created successfully!', description: result.message});
       } else {
@@ -264,7 +268,10 @@ export default function CreateQuotePage() {
     
     <div className="container py-10">
     <Suspense fallback={<div>Loading...</div>}>
-        <SearchParamsWrapper>
+        <SearchParamsWrapper >
+
+          {({form, products, selectedProduct, setSelectedProduct, availableProducts, addProduct, removeProduct, updateProduct, calculateTotal, toast})=> (
+
       <Card>
           <CardHeader>
             <img src={logoImg.src} alt="Logo" className='h-10 w-10 print:hidden' />
@@ -442,6 +449,7 @@ export default function CreateQuotePage() {
                 </>
               )}</div>
               
+              
             </form>
           </Form>
         </CardContent>
@@ -451,4 +459,7 @@ export default function CreateQuotePage() {
     </div>
     
   );
+    )}
+    </SearchParamsWrapper>
+    </Suspense></div>);
 }

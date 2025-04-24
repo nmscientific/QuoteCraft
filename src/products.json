@@ -10,13 +10,13 @@
     "dimensions": "1/4 inch"
   },
   {
-    "description": "Test Entry",
+    "description": "Test Product Entry",
     "squareFootagePrice": 1,
     "dimensions": "1/8"
   },
   {
     "description": "Test Entry 2",
     "squareFootagePrice": 2,
-    "dimensions": ""
+    "dimensions": "1/4"
   }
 ]

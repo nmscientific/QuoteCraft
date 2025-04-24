@@ -195,6 +195,7 @@ export default function CreateQuotePage() {
   };
 
   return (
+    
     <div className="container py-10">
       <Card>
           <CardHeader>
@@ -377,5 +378,6 @@ export default function CreateQuotePage() {
         </CardContent>
       </Card>
     </div>
+    
   );
 }

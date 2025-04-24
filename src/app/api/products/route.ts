@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { Product } from '@/types';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'src', 'products.json');
+const dataFilePath = path.join(process.cwd(), 'public', 'products.json');
 
 export async function GET() {
   try {

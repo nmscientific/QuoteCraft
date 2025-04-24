@@ -38,8 +38,8 @@ export default function OpenQuotePage() {
   useEffect(() => {
     const getQuotes = async () => {
       try {
-        const files = await listFiles('src/quotes/');
-        if (files) {            
+        const files = await listFiles('public/quotes/');
+        if (files) {
             setQuoteFiles(files.filter((file: string) => file.endsWith('.json')));
         } else {
             console.error('Error getting files');
@@ -52,15 +52,15 @@ export default function OpenQuotePage() {
     const loadQuotes = async () => {
         try {
             const quotes: {[filename: string]: Quote} = {};
-            const files = await listFiles('src/quotes/');
+            const files = await listFiles('public/quotes/');
 
-            if (files) {                
+            if (files) {
                 for (const file of files) {
                   if (file.endsWith('.json')){
                     const fileContent = await readFile(file);
-                    quotes[file.replace('src/quotes/', '')] = JSON.parse(fileContent);
+                    quotes[file.replace('public/quotes/', '')] = JSON.parse(fileContent);
                   }
-                  
+
                 }
                 // add fileDisplay to the quote object
                 for (const filename in quotes) {
@@ -79,9 +79,9 @@ export default function OpenQuotePage() {
     loadQuotes();
   }, []);
 
-  const handleDeleteQuote = async (filename: string) => {    
+  const handleDeleteQuote = async (filename: string) => {
     try {
-        const result = await deleteFile(`src/quotes/${filename}`);
+        const result = await deleteFile(`public/quotes/${filename}`);
         if(result){
           setQuoteFiles(quoteFiles.filter(file => file !== filename));
           setQuotesData(prevData => ({ ...prevData, [filename]: undefined}));
@@ -160,4 +160,3 @@ export default function OpenQuotePage() {
     </div>
   );
 }
-

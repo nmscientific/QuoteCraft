@@ -17,23 +17,23 @@ export async function saveQuote(quoteData: Quote) {
       projectName: quoteData.projectName,
       description: quoteData.description,
       products: quoteData.products,
-      total: quoteData.total,     
+      total: quoteData.total,
 
 
     quoteNumber,
   };
 
-  const quotesDir = './src/quotes';
+  const quotesDir = './public/quotes';
   const filePath = `${quotesDir}/quote-${quoteNumber}.json`;
 
   try {
     if (!fs.existsSync(quotesDir)) {
       fs.mkdirSync(quotesDir, {recursive: true});
     }
-    await fs.promises.writeFile(filePath, JSON.stringify(quoteWithNumber, null, 2));    
-    return {success: true, message: `Quote saved as quote-${quoteNumber}.json`};    
+    await fs.promises.writeFile(filePath, JSON.stringify(quoteWithNumber, null, 2));
+    return {success: true, message: `Quote saved as quote-${quoteNumber}.json`};
   } catch (error) {
     console.error('Error saving quote:', error);
-    return {success: false, message: 'Error saving quote'};    
+    return {success: false, message: 'Error saving quote'};
   }
 }

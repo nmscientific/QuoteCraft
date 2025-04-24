@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, Suspense} from 'react';
+import {useState, useEffect, Suspense, ReactNode} from 'react';
 import { useSearchParams } from 'next/navigation';
 import logo from '@/public/logo.png';
 import { saveQuote } from '@/app/actions';
@@ -104,7 +104,7 @@ async function loadProductsFromJson(): Promise<Product[]> {
   }
 }
 
-function SearchParamsWrapper({children}: { children: React.ReactNode }) {
+function SearchParamsWrapper({children}: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const {toast} = useToast();
   const form = useForm<Quote>({

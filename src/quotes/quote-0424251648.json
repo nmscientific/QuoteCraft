@@ -1,0 +1,25 @@
+{
+  "customerName": "Test Customer",
+  "projectName": "A test project Name",
+  "description": "test",
+  "products": [
+    {
+      "productDescription": "Standard Glass",
+      "lengthFeet": 0,
+      "lengthInches": 0,
+      "widthFeet": 0,
+      "widthInches": 0,
+      "price": 2.5
+    },
+    {
+      "productDescription": "Tempered Glass",
+      "lengthFeet": 0,
+      "lengthInches": 0,
+      "widthFeet": 0,
+      "widthInches": 0,
+      "price": 3.5
+    }
+  ],
+  "total": 0,
+  "quoteNumber": "0424251648"
+}

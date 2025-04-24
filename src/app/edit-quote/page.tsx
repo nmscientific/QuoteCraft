@@ -246,7 +246,12 @@ export default function EditQuotePage() {
           title: 'Quote updated successfully!',
           description: result.message,
         });
-        router.push('/open-quote'); // Redirect to open quote page after save
+
+        // Delay the router.push to allow the print button to be visible
+        setTimeout(() => {
+          router.push('/open-quote'); // Redirect to open quote page after save
+        }, 1000); // Delay for 1 second (adjust as needed)
+
       } else {
         toast({
           variant: 'destructive',

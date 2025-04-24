@@ -210,6 +210,7 @@ export default function CreateQuotePage() {
             <CardDescription className='no-print'>
               Enter the details for your new quote.
           </CardDescription>          
+        </div>
         </CardHeader>
         <CardContent className="grid gap-4 print:mb-2">
           <Form {...form}>

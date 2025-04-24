@@ -131,9 +131,9 @@ export default function OpenQuotePage() {
         variant: 'destructive',
         title: 'Error deleting quote',
         description: `Error deleting ${filename}.`,
-      });
-    }
-  };
+        });
+      }
+    };
 
   return (
     <div className="container py-10">
@@ -169,6 +169,16 @@ export default function OpenQuotePage() {
                         <TableCell>{quote.customerName}</TableCell>
                         <TableCell>{quote.projectName}</TableCell>
                         <TableCell>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                              router.push(
+                                `/create-quote?view=true&quoteFilename=${file}`,
+                              );
+                            }}
+                          >
+                            View
+                          </Button>
                           <Button
                             variant="outline"
                             onClick={() => {

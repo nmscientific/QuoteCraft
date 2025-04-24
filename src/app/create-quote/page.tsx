@@ -39,6 +39,7 @@ import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Trash} from 'lucide-react';
+import {readFile} from '../server-actions';
 
 // Define the schema for the quote form
 const quoteSchema = z.object({
@@ -81,7 +82,7 @@ type Product = {
 
 async function loadProductsFromJson(): Promise<Product[]> {
   try {
-    const response = await fetch('/products.json', {
+    const response = await fetch('/api/products', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -95,14 +96,14 @@ async function loadProductsFromJson(): Promise<Product[]> {
     }
 
     const data = await response.json();
-    return data as Product[];
+    return data.products as Product[];
   } catch (error: any) {
     console.error('Error loading products from API:', error);
     return [];
   }
 }
 
-export default function CreateQuotePage() {
+export default function CreateQuotePage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const {toast} = useToast();
   const [products, setProducts] = useState< {
       productDescription: string;
@@ -115,6 +116,7 @@ export default function CreateQuotePage() {
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [isQuoteSaved, setIsQuoteSaved] = useState(false);
 
   const logoImg = logo;
   const form = useForm<Quote>({
@@ -128,7 +130,9 @@ export default function CreateQuotePage() {
 
   });
 
-  const [isQuoteSaved, setIsQuoteSaved] = useState(false);
+  const { quoteFilename, edit, view } = searchParams;
+  const isEditMode = edit === 'true';
+  const isViewMode = view === 'true';
 
   useEffect(() => {
     setIsQuoteSaved(false);
@@ -138,10 +142,50 @@ export default function CreateQuotePage() {
         const initialProducts = await loadProductsFromJson();
         setAvailableProducts(initialProducts);
       } catch (error) {
+          console.error("Failed to load products:", error);
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load product list.',
+          });
       }
     }
     fetchProducts();
-  }, []);
+  }, [toast]);
+
+  useEffect(() => {
+    const loadQuote = async () => {
+      if (quoteFilename) {
+        try {
+          const fileContent = await readFile(`public/quotes/${quoteFilename}`);
+          if (fileContent) {
+            const quoteData = JSON.parse(fileContent);
+            form.setValue('customerName', quoteData.customerName || '');
+            form.setValue('projectName', quoteData.projectName || '');
+            form.setValue('description', quoteData.description || '');
+            setProducts(quoteData.products || []);
+          } else {
+            toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Could not load quote data.',
+            });
+          }
+        } catch (error) {
+          console.error('Error loading quote:', error);
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load quote.',
+          });
+        }
+      }
+    };
+
+    if (isEditMode || isViewMode) {
+      loadQuote();
+    }
+  }, [quoteFilename, isEditMode, isViewMode, form, toast]);
 
   const addProduct = (product: Product) => {
     setProducts([
@@ -215,9 +259,9 @@ export default function CreateQuotePage() {
       console.error('error saving quote',e)
     }
   };
+
   const handlePrint = () => {
-    console.log('handlePrint');
-    window.print();
+      window.print();
   };
 
   return (
@@ -231,10 +275,10 @@ export default function CreateQuotePage() {
             </h1>
           <div className="print:hidden">
             <CardTitle className='no-print'>
-              Create New Quote
+              {isEditMode ? 'Edit Quote' : isViewMode ? 'View Quote' : 'Create New Quote'}
             </CardTitle>
             <CardDescription className='no-print'>
-              Enter the details for your new quote.
+              {isEditMode ? 'Edit the details for your quote.' : isViewMode ? 'View and print the quote.' : 'Enter the details for your new quote.'}
           </CardDescription>
         </div>
         </CardHeader>
@@ -250,7 +294,7 @@ export default function CreateQuotePage() {
                   <FormItem>
                     <FormLabel className='no-print'>Customer Name</FormLabel>
                     <FormControl>
-                      <Input className='print:m-0 print:p-0' placeholder="Customer name" {...field} />
+                      <Input className='print:m-0 print:p-0' placeholder="Customer name" {...field}  {...(isViewMode ? { disabled: true } : {})} {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
                       Enter the name of the customer.
@@ -266,7 +310,7 @@ export default function CreateQuotePage() {
                   <FormItem>
                     <FormLabel className='no-print'>Project Name</FormLabel>
                     <FormControl >
-                      <Input placeholder="Project name" {...field} />
+                      <Input placeholder="Project name" {...field}  {...(isViewMode ? { disabled: true } : {})} {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
                       Enter the name of the project.
@@ -282,7 +326,7 @@ export default function CreateQuotePage() {
                   <FormItem>
                     <FormLabel className='no-print'>Description</FormLabel>
                     <FormControl >
-                      <Textarea placeholder="Description" {...field} />
+                      <Textarea placeholder="Description" {...field}   {...(isViewMode ? { disabled: true } : {})} {...field} />
                     </FormControl>
                     <FormDescription className='no-print'>
                       Enter a description for the quote.
@@ -299,7 +343,9 @@ export default function CreateQuotePage() {
                 </FormDescription>
                 <Select onValueChange={(value) => {
                   setSelectedProduct(value);
-                }}>
+                }}
+                disabled={isViewMode}
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue className='no-print' placeholder="Select a product" value={selectedProduct || undefined} />
                   </SelectTrigger>
@@ -326,6 +372,7 @@ export default function CreateQuotePage() {
                       });
                     }
                   }}
+                  disabled={isViewMode}
                 >
                   Add Product
                 </Button>
@@ -347,22 +394,44 @@ export default function CreateQuotePage() {
                       <TableHead>Width (In)</TableHead>
                       <TableHead>Price/Sq. Ft.</TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Actions</TableHead>
+                      {!isViewMode && <TableHead>Actions</TableHead>}
                     </TableRow> </TableHeader>
                   <TableBody>
                     {products.map((product, index) => (
                       <TableRow key={index} className='print:my-1'>
                         <TableCell className='print:text-sm print:p-0'>{product.productDescription}</TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0'>
-                         {product.lengthFeet}
+                         <Input
+                              type="number"
+                              value={product.lengthFeet}
+                              onChange={(e) => updateProduct(index, 'lengthFeet', parseFloat(e.target.value))}
+                              disabled={isViewMode}
+                            />
                         </TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0' >
-                          {product.lengthInches}
+                        <Input
+                              type="number"
+                              value={product.lengthInches}
+                              onChange={(e) => updateProduct(index, 'lengthInches', parseFloat(e.target.value))}
+                              disabled={isViewMode}
+                            />
                         </TableCell>
                         <TableCell className='print:text-sm print:w-10 print:p-0' >
-                          {product.widthFeet}
+                        <Input
+                              type="number"
+                              value={product.widthFeet}
+                              onChange={(e) => updateProduct(index, 'widthFeet', parseFloat(e.target.value))}
+                              disabled={isViewMode}
+                            />
                         </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0' >{product.widthInches}</TableCell>
+                        <TableCell className='print:text-sm print:w-10 print:p-0' >
+                        <Input
+                              type="number"
+                              value={product.widthInches}
+                              onChange={(e) => updateProduct(index, 'widthInches', parseFloat(e.target.value))}
+                              disabled={isViewMode}
+                            />
+                        </TableCell>
                         <TableCell className='print:text-sm print:p-0'>${product.price.toFixed(2)}</TableCell>
                         <TableCell className='print:text-sm print:p-0'>
                           ${(() => {
@@ -374,6 +443,7 @@ export default function CreateQuotePage() {
 
 
 
+                        {!isViewMode && (
                         <TableCell className='print:hidden'>
                         <Button
                             variant="destructive"
@@ -381,6 +451,7 @@ export default function CreateQuotePage() {
                             <Trash className="h-4 w-4" />
                           </Button>
                          </TableCell>
+                        )}
 
 
                       </TableRow>
@@ -393,12 +464,16 @@ export default function CreateQuotePage() {
               </div>
 
               <div className="print:hidden">
-              <Button type="submit">Create Quote</Button>
+              {!isViewMode && <Button type="submit">Create Quote</Button>}
               {isQuoteSaved && (
                 <>
                    <Button type="button" onClick={handlePrint}>Print Quote</Button>
                 </>
-              )}</div>
+              )}
+              {isViewMode && (
+                <Button type="button" onClick={handlePrint}>Print Quote</Button>
+              )}
+              </div>
 
             </form>
           </Form>

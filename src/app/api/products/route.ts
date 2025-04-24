@@ -1,13 +1,19 @@
 import {NextResponse} from 'next/server';
 import fs from 'fs/promises';
+import { Product } from '@/types';
+import path from 'path';
 
-const dataFilePath = 'src/products.json';
+const dataFilePath = path.join(process.cwd(), 'src', 'products.json');
 
 export async function GET() {
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const data = JSON.parse(fileContent);
-    return NextResponse.json(data);
+     // Read the products data from the JSON file
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');    
+    const products = JSON.parse(fileContent);
+    
+    return NextResponse.json({
+        products
+    });
   } catch (error: any) {
     console.error('Error reading data:', error);
     return new NextResponse(JSON.stringify({message: 'Error reading data'}), {

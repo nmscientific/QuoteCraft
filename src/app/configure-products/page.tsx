@@ -35,7 +35,6 @@ import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect} from 'react';
-import fs from 'fs/promises';
 
 const productSchema = z.object({
   description: z.string().min(2, {
@@ -62,6 +61,42 @@ const defaultProducts: Product[] = [
   },
 ];
 
+async function loadProducts(): Promise<Product[]> {
+  try {
+    const response = await fetch('/api/products', {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'},
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as Product[];
+  } catch (error) {
+    console.error('Error loading products from API:', error);
+    return defaultProducts;
+  }
+}
+
+async function saveProducts(products: Product[]): Promise<void> {
+  try {
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(products),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error saving products via API:', error);
+    throw error;
+  }
+}
+
 export default function ConfigureProductsPage() {
   const [products, setProducts] = useState<Product[]>(defaultProducts);
   const {toast} = useToast();
@@ -76,37 +111,32 @@ export default function ConfigureProductsPage() {
   });
 
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const data = await fs.readFile('src/products.json', 'utf-8');
-        const parsedProducts = JSON.parse(data) as Product[];
-        setProducts(parsedProducts);
-      } catch (error) {
-        console.error('Error loading products from file:', error);
-      }
+    const fetchProducts = async () => {
+      const initialProducts = await loadProducts();
+      setProducts(initialProducts);
     };
 
-    loadProducts();
+    fetchProducts();
   }, []);
 
   async function onSubmit(values: Product) {
     try {
       const updatedProducts = [...products, values];
-      await fs.writeFile(
-        'src/products.json',
-        JSON.stringify(updatedProducts),
-        'utf-8'
-      );
+      await saveProducts(updatedProducts);
       setProducts(updatedProducts);
       form.reset();
       toast({
         title: 'Product added successfully!',
         description: 'Your product has been added to the list.',
       });
-    } catch (error) {
-      console.error('Error saving products to file:', error);
-      toast({variant: 'destructive', title:'Error', description:'Could not save product to the list.'})
-    });
+    } catch (error: any) {
+      console.error('Error saving products:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Could not save product to the list.',
+      });
+    }
   }
 
   return (

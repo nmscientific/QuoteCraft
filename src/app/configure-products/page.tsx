@@ -74,9 +74,9 @@ async function loadProducts(): Promise<Product[]> {
 
     const data = await response.json();
     return data as Product[];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error loading products from API:', error);
-    return defaultProducts;
+    return [];
   }
 }
 
@@ -112,12 +112,29 @@ export default function ConfigureProductsPage() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const initialProducts = await loadProducts();
-      setProducts(initialProducts);
+      try {
+        const initialProducts = await loadProducts();
+        setProducts(initialProducts.length > 0 ? initialProducts : defaultProducts);
+        if (initialProducts.length === 0){
+            toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Could not load product list.',
+            });
+        }
+      } catch (error: any) {
+        console.error('Error loading products:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.message || 'Could not load product list.',
+        });
+        setProducts(defaultProducts);        
+      }
     };
 
     fetchProducts();
-  }, []);
+  }, [toast]);
 
   async function onSubmit(values: Product) {
     try {

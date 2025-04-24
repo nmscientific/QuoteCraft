@@ -1,0 +1,17 @@
+[
+  {
+    "description": "Standard Glass",
+    "squareFootagePrice": 2.5,
+    "dimensions": "1/4 inch"
+  },
+  {
+    "description": "Tempered Glass",
+    "squareFootagePrice": 3.5,
+    "dimensions": "1/4 inch"
+  },
+  {
+    "description": "Test Entry",
+    "squareFootagePrice": 1,
+    "dimensions": "1/8"
+  }
+]

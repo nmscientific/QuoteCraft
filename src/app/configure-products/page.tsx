@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,7 +28,15 @@ import {Input} from '@/components/ui/input';
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {Textarea} from '@/components/ui/textarea';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableCaption,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {useToast} from '@/hooks/use-toast';
 import {z} from 'zod';
 import {useForm} from 'react-hook-form';
@@ -224,7 +233,7 @@ export default function ConfigureProductsPage() {
           <Button variant="secondary" onClick={() => router.push('/')}>
             Main Menue
           </Button>
-          <div>
+          <div className="mb-6">
             <Form {...form}>
               <form
                 className="space-y-4"
@@ -248,7 +257,7 @@ export default function ConfigureProductsPage() {
             </Form>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="description"                
@@ -296,10 +305,9 @@ export default function ConfigureProductsPage() {
                   <FormItem>
                     <FormLabel>Dimensions (Optional)</FormLabel>
                     <FormControl>
-                    
                       <Input placeholder="e.g., 1/4 inch" {...field} />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="max-w-[400px]">
                       Specify the dimensions of the product.
                     </FormDescription>
                     <FormMessage />
@@ -307,6 +315,7 @@ export default function ConfigureProductsPage() {
                 )}
               />
               <Button type="submit">Add Product</Button>
+            </form>
           </Form>
 
           <div className="relative overflow-x-auto shadow-md sm:rounded-lg">

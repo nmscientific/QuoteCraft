@@ -5,7 +5,7 @@ import logo from '@/public/logo.png';
 
 export default function Header() {
   return (
-    <header className="bg-secondary p-4 flex items-center justify-between print:hidden">
+    <header className="bg-secondary p-4 flex items-center justify-between">
       <div className="flex items-center">
         <Image src={logo} alt="B&T Glass, Inc. Logo" width={50} height={50} className="mr-4" />
         <div>

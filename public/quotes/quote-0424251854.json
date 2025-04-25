@@ -1,0 +1,17 @@
+{
+  "customerName": "Official Test Customer",
+  "projectName": "Software Test Init Release",
+  "description": "Testing on the initial rough release.",
+  "products": [
+    {
+      "productDescription": "Test Product Entry 4",
+      "lengthFeet": 1,
+      "lengthInches": 1,
+      "widthFeet": 1,
+      "widthInches": 1,
+      "price": 4
+    }
+  ],
+  "total": 4.694444444444444,
+  "quoteNumber": "0424251854"
+}

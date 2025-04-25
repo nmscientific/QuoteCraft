@@ -131,18 +131,23 @@ export default function OpenQuotePage() {
         variant: 'destructive',
         title: 'Error deleting quote',
         description: `Error deleting ${filename}.`,
-        });
-      }
-    };
+      });
+    }
+  };
 
   return (
     <div className="container py-10">
       <Card>
         <CardHeader>
           <CardTitle>Open Existing Quote</CardTitle>
-          <CardDescription>View, edit, and manage existing quotes.</CardDescription>
+          <CardDescription>
+            View, edit, and manage existing quotes.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <Button variant="secondary" onClick={() => router.push('/')}>
+            Home
+          </Button>
           {quoteFiles.length === 0 ? (
             <p>No quotes found.</p>
           ) : (
@@ -169,11 +174,11 @@ export default function OpenQuotePage() {
                         <TableCell>{quote.customerName}</TableCell>
                         <TableCell>{quote.projectName}</TableCell>
                         <TableCell>
-                        <Button
+                          <Button
                             variant="outline"
                             onClick={() => {
                               router.push(
-                                `/create-quote?view=true&quoteFilename=${file}`,
+                                `/create-quote?view=true&quoteFilename=${file}`
                               );
                             }}
                           >
@@ -183,7 +188,7 @@ export default function OpenQuotePage() {
                             variant="outline"
                             onClick={() => {
                               router.push(
-                                `/create-quote?edit=true&quoteFilename=${file}`,
+                                `/create-quote?edit=true&quoteFilename=${file}`
                               );
                             }}
                           >

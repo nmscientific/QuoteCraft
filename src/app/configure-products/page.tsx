@@ -34,7 +34,7 @@ import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect} from 'react';
-import { Trash2, Edit } from 'lucide-react';
+import {Trash2, Edit} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog';
+import {useRouter} from 'next/navigation';
 
 const productSchema = z.object({
   description: z.string().min(2, {
@@ -67,10 +68,10 @@ async function loadProductsFromJson(): Promise<Product[]> {
     });
 
     if (!response.ok) {
-        if (response.status === 404) {
-            console.warn('products.json not found. Using an empty array.');
-            return []; // Return an empty array if the file is not found
-        }
+      if (response.status === 404) {
+        console.warn('products.json not found. Using an empty array.');
+        return []; // Return an empty array if the file is not found
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -81,8 +82,6 @@ async function loadProductsFromJson(): Promise<Product[]> {
     return [];
   }
 }
-
-
 
 async function saveProducts(products: Product[]): Promise<void> {
   try {
@@ -106,7 +105,6 @@ export default function ConfigureProductsPage() {
   const {toast} = useToast();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-
   const form = useForm<Product>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -116,17 +114,19 @@ export default function ConfigureProductsPage() {
     },
   });
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const initialProducts = await loadProductsFromJson();
         setProducts(initialProducts.length > 0 ? initialProducts : []);
-        if (initialProducts.length === 0){
-            toast({
-              variant: 'destructive',
-              title: 'Error',
-              description: 'Could not load product list.',
-            });
+        if (initialProducts.length === 0) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not load product list.',
+          });
         }
       } catch (error: any) {
         console.error('Error loading products:', error);
@@ -135,7 +135,7 @@ export default function ConfigureProductsPage() {
           title: 'Error',
           description: error.message || 'Could not load product list.',
         });
-        setProducts([]);        
+        setProducts([]);
       }
     };
 
@@ -221,6 +221,9 @@ export default function ConfigureProductsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <Button variant="secondary" onClick={() => router.push('/')}>
+            Home
+          </Button>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -298,13 +301,15 @@ export default function ConfigureProductsPage() {
                 {products.map((product, index) => (
                   <TableRow key={index}>
                     <TableCell>{product.description}</TableCell>
-                    <TableCell>${product.squareFootagePrice.toFixed(2)}</TableCell>
+                    <TableCell>
+                      ${product.squareFootagePrice.toFixed(2)}
+                    </TableCell>
                     <TableCell>{product.dimensions || 'N/A'}</TableCell>
                     <TableCell>
                       {editingIndex === index ? (
                         <Form {...form}>
                           <form
-                            onSubmit={form.handleSubmit((values) =>
+                            onSubmit={form.handleSubmit(values =>
                               handleUpdate(index, values)
                             )}
                             className="space-y-2"

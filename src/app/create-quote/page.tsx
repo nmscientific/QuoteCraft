@@ -1,8 +1,8 @@
 'use client';
 
-import {useState, useEffect, Suspense, useMemo } from 'react';
+import {useState, useEffect, Suspense, useMemo} from 'react';
 import logo from '@/public/logo.png';
-import { saveQuote } from '@/app/actions';
+import {saveQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import {cn} from '@/lib/utils';
 import {
   Form,
   FormControl,
@@ -21,26 +21,32 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TableHeader, 
+  TableHeader,
   TableRow,
-  TableCaption
+  TableCaption,
 } from '@/components/ui/table';
 import {Textarea} from '@/components/ui/textarea';
 import {useToast} from '@/hooks/use-toast';
 import {z} from 'zod';
 import {useForm} from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash } from 'lucide-react';
-import { readFile } from '../server-actions';
-import { useSearchParams, usePathname } from 'next/navigation'
+import {zodResolver} from '@hookform/resolvers/zod';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {Trash} from 'lucide-react';
+import {readFile} from '../server-actions';
+import {useSearchParams, usePathname, useRouter} from 'next/navigation';
 import React from 'react';
 
 // Define the schema for the quote form
@@ -72,7 +78,6 @@ const quoteSchema = z.object({
   ),
 });
 
-
 type Quote = z.infer<typeof quoteSchema>;
 
 // Define a type for the products.  This is temporary, we will be fetching the products in a future step.
@@ -86,7 +91,7 @@ async function loadProductsFromJson(): Promise<Product[]> {
   try {
     const response = await fetch('/api/products', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
     });
 
     if (!response.ok) {
@@ -101,14 +106,13 @@ async function loadProductsFromJson(): Promise<Product[]> {
     return data.products as Product[];
   } catch (error: any) {
     console.error('Error loading products from API:', error);
-    return []; 
+    return [];
   }
 }
 
-export function SearchParamsWrapper({ children }: { children: React.ReactNode }) {
+export function SearchParamsWrapper({children}: {children: React.ReactNode}) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-
 
   const quoteFilename = useMemo(() => {
     return searchParams.get('quoteFilename');
@@ -119,15 +123,16 @@ export function SearchParamsWrapper({ children }: { children: React.ReactNode })
 
   return (
     <>
-      {React.Children.map(children, (child) => React.cloneElement(child as React.ReactElement, {
-        quoteFilename,
-        edit,
-        view,
-      }))}
+      {React.Children.map(children, (child: any) =>
+        React.cloneElement(child, {
+          quoteFilename,
+          edit,
+          view,
+        })
+      )}
     </>
   );
 }
-
 
 type CreateQuotePageProps = {
   quoteFilename: string | null;
@@ -135,21 +140,28 @@ type CreateQuotePageProps = {
   view: string | null;
 };
 
-
-const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, view }) => {
-  const { toast } = useToast();
-  const [products, setProducts] = useState<{
+const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
+  quoteFilename,
+  edit,
+  view,
+}) => {
+  const {toast} = useToast();
+  const [products, setProducts] = useState<
+    {
       productDescription: string;
       lengthFeet: number;
       lengthInches: number;
+      widthFeet: number;
       widthInches: number;
 
       price: number;
-    }[] >([]);
+    }[]
+  >([]);
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [isQuoteSaved, setIsQuoteSaved] = useState(false);
+  const router = useRouter();
 
   const logoImg = logo;
   const form = useForm<Quote>({
@@ -160,12 +172,10 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
       description: '',
       products: [],
     },
-
   });
 
   const isEditMode = edit === 'true';
   const isViewMode = view === 'true';
-
 
   useEffect(() => {
     setIsQuoteSaved(false);
@@ -175,14 +185,14 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
         const initialProducts = await loadProductsFromJson();
         setAvailableProducts(initialProducts);
       } catch (error) {
-        console.error("Failed to load products:", error);
+        console.error('Failed to load products:', error);
         toast({
           variant: 'destructive',
           title: 'Error',
           description: 'Could not load product list.',
         });
       }
-    }
+    };
     fetchProducts();
   }, [toast]);
 
@@ -259,7 +269,6 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
     }, 0);
   };
 
-
   const onSubmit = async (values: Quote) => {
     const now = new Date();
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -280,16 +289,23 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
       total: total,
     };
 
-    try{
+    try {
       const result = await saveQuote(quoteData);
       if (result.success) {
         setIsQuoteSaved(true);
-        toast({title: 'Quote created successfully!', description: result.message});
+        toast({
+          title: 'Quote created successfully!',
+          description: result.message,
+        });
       } else {
-        toast({variant: 'destructive', title: 'Error saving quote', description: result.message});
+        toast({
+          variant: 'destructive',
+          title: 'Error saving quote',
+          description: result.message,
+        });
       }
-    }catch(e){
-      console.error('error saving quote',e)
+    } catch (e) {
+      console.error('error saving quote', e);
     }
   };
 
@@ -297,43 +313,64 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
     window.print();
   };
 
-
   return (
-
     <div className="container py-10">
       <Card>
         <CardHeader>
-          <img src={logoImg.src} alt="Logo" className='h-10 w-10 print:hidden' />
-          <h1 className='print:block hidden font-bold'>
-            Quote
-          </h1>
+          <img
+            src={logoImg.src}
+            alt="Logo"
+            className="h-10 w-10 print:hidden"
+          />
+          <h1 className="print:block hidden font-bold">Quote</h1>
           <div className="print:hidden">
-            <CardTitle className='no-print'>
-              {isEditMode ? 'Edit Quote' : isViewMode ? 'View Quote' : 'Create New Quote'}
+            <CardTitle className="no-print">
+              {isEditMode
+                ? 'Edit Quote'
+                : isViewMode
+                ? 'View Quote'
+                : 'Create New Quote'}
             </CardTitle>
-            <CardDescription className='no-print'>
-              {isEditMode ? 'Edit the details for your quote.' : isViewMode ? 'View and print the quote.' : 'Enter the details for your new quote.'}
+            <CardDescription className="no-print">
+              {isEditMode
+                ? 'Edit the details for your quote.'
+                : isViewMode
+                ? 'View and print the quote.'
+                : 'Enter the details for your new quote.'}
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 print:mb-2"> 
+        <CardContent className="grid gap-4 print:mb-2">
+          <Button variant="secondary" onClick={() => router.push('/')}>
+            Home
+          </Button>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} onChange={()=>{
-              setIsQuoteSaved(false)
-            }} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              onChange={() => {
+                setIsQuoteSaved(false);
+              }}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="customerName"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel className='no-print'>Customer Name</FormLabel>
+                    <FormLabel className="no-print">Customer Name</FormLabel>
                     <FormControl>
-                      <Input className='print:m-0 print:p-0' placeholder="Customer name" {...field}  {...(isViewMode ? { disabled: true } : {})} {...field} />
+                      <Input
+                        className="print:m-0 print:p-0"
+                        placeholder="Customer name"
+                        {...field}
+                        {...(isViewMode ? {disabled: true} : {})}
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription className='no-print'>
+                    <FormDescription className="no-print">
                       Enter the name of the customer.
                     </FormDescription>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -342,14 +379,19 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
                 name="projectName"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel className='no-print'>Project Name</FormLabel>
-                    <FormControl >
-                      <Input placeholder="Project name" {...field}  {...(isViewMode ? { disabled: true } : {})} {...field} />
+                    <FormLabel className="no-print">Project Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Project name"
+                        {...field}
+                        {...(isViewMode ? {disabled: true} : {})}
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription className='no-print'>
+                    <FormDescription className="no-print">
                       Enter the name of the project.
                     </FormDescription>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -358,11 +400,15 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
                 name="description"
                 render={({field}) => (
                   <FormItem>
-                    <FormLabel className='no-print'>Description</FormLabel>
-                    <FormControl >
-                      <Textarea placeholder="Description" {...field}   {...(isViewMode ? { disabled: true } : {})} />
+                    <FormLabel className="no-print">Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Description"
+                        {...field}
+                        {...(isViewMode ? {disabled: true} : {})}
+                      />
                     </FormControl>
-                    <FormDescription className='no-print'>
+                    <FormDescription className="no-print">
                       Enter a description for the quote.
                     </FormDescription>
                     <FormMessage />
@@ -371,42 +417,51 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
               />
 
               <div>
-                <FormLabel className='no-print'>Products</FormLabel>
-                <FormDescription className='no-print'>
+                <FormLabel className="no-print">Products</FormLabel>
+                <FormDescription className="no-print">
                   Select the products for the quote.
                 </FormDescription>
-                <Select onValueChange={(value) => {
-                  setSelectedProduct(value);
-                }} disabled={isViewMode}
+                <Select
+                  onValueChange={value => {
+                    setSelectedProduct(value);
+                  }}
+                  disabled={isViewMode}
                 >
                   <SelectTrigger className="w-[180px]">
-
-                    <SelectValue className='no-print' placeholder="Select a product" value={selectedProduct || undefined} />
+                    <SelectValue
+                      className="no-print"
+                      placeholder="Select a product"
+                      value={selectedProduct || undefined}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableProducts.map((product) => (
-                      <SelectItem key={product.description} value={product.description}>
+                    {availableProducts.map(product => (
+                      <SelectItem
+                        key={product.description}
+                        value={product.description}
+                      >
                         {product.description}
                       </SelectItem>
-
                     ))}
                   </SelectContent>
                 </Select>
                 <Button
                   type="button"
                   className="print:hidden"
-                  size="sm" onClick={() => {
-                    const product = availableProducts.find(p => p.description === selectedProduct);
+                  size="sm"
+                  onClick={() => {
+                    const product = availableProducts.find(
+                      p => p.description === selectedProduct
+                    );
                     if (product) {
                       addProduct(product);
                     } else {
                       toast({
-                        title: 'Please select a product', 
+                        title: 'Please select a product',
                       });
                     }
                   }}
-                  disabled={isViewMode} 
-
+                  disabled={isViewMode}
                 >
                   Add Product
                 </Button>
@@ -414,82 +469,110 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
 
               <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <Table
-                  className={cn({ 
+                  className={cn({
                     'print:table': isQuoteSaved,
-                    'print:w-auto': isQuoteSaved
+                    'print:w-auto': isQuoteSaved,
                   })}
                 >
                   <TableCaption>List of selected products</TableCaption>
                   <TableHeader>
-                      <TableRow>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Length (Ft)</TableHead> 
-                        <TableHead >Length (In)</TableHead> 
-                        <TableHead>Width (Ft)</TableHead>
-                        <TableHead>Width (In)</TableHead>
-                        <TableHead>Price/Sq. Ft.</TableHead>
-                        <TableHead>Total</TableHead>
-                        {!isViewMode && <TableHead>Actions</TableHead>}
-                      </TableRow>
-                  </TableHeader> 
+                    <TableRow>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Length (Ft)</TableHead>
+                      <TableHead>Length (In)</TableHead>
+                      <TableHead>Width (Ft)</TableHead>
+                      <TableHead>Width (In)</TableHead>
+                      <TableHead>Price/Sq. Ft.</TableHead>
+                      <TableHead>Total</TableHead>
+                      {!isViewMode && <TableHead>Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {products.map((product, index) => (
-                      <TableRow key={index} className='print:my-1'>
-                        <TableCell className='print:text-sm print:p-0'>{product.productDescription}</TableCell> 
-                        <TableCell className='print:text-sm print:w-10 print:p-0'> 
+                      <TableRow key={index} className="print:my-1">
+                        <TableCell className="print:text-sm print:p-0">
+                          {product.productDescription}
+                        </TableCell>
+                        <TableCell className="print:text-sm print:w-10 print:p-0">
                           <Input
                             type="number"
                             value={product.lengthFeet}
-                            onChange={(e) => updateProduct(index, 'lengthFeet', parseFloat(e.target.value))}
+                            onChange={e =>
+                              updateProduct(
+                                index,
+                                'lengthFeet',
+                                parseFloat(e.target.value)
+                              )
+                            }
                             disabled={isViewMode}
                           />
                         </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0' > 
+                        <TableCell className="print:text-sm print:w-10 print:p-0">
                           <Input
                             type="number"
                             value={product.lengthInches}
-                            onChange={(e) => updateProduct(index, 'lengthInches', parseFloat(e.target.value))}
+                            onChange={e =>
+                              updateProduct(
+                                index,
+                                'lengthInches',
+                                parseFloat(e.target.value)
+                              )
+                            }
                             disabled={isViewMode}
                           />
                         </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0' > 
+                        <TableCell className="print:text-sm print:w-10 print:p-0">
                           <Input
                             type="number"
                             value={product.widthFeet}
-                            onChange={(e) => updateProduct(index, 'widthFeet', parseFloat(e.target.value))}
+                            onChange={e =>
+                              updateProduct(
+                                index,
+                                'widthFeet',
+                                parseFloat(e.target.value)
+                              )
+                            }
                             disabled={isViewMode}
                           />
                         </TableCell>
-                        <TableCell className='print:text-sm print:w-10 print:p-0' > 
+                        <TableCell className="print:text-sm print:w-10 print:p-0">
                           <Input
                             type="number"
                             value={product.widthInches}
-                            onChange={(e) => updateProduct(index, 'widthInches', parseFloat(e.target.value))}
+                            onChange={e =>
+                              updateProduct(
+                                index,
+                                'widthInches',
+                                parseFloat(e.target.value)
+                              )
+                            }
                             disabled={isViewMode}
                           />
                         </TableCell>
-                        <TableCell className='print:text-sm print:p-0'>${product.price.toFixed(2)}</TableCell> 
-                        <TableCell className='print:text-sm print:p-0'> 
-                          ${(() => {
-                                const length = product.lengthFeet + product.lengthInches / 12;
-                                const width = product.widthFeet + product.widthInches / 12;
-                                return (length * width * product.price).toFixed(2);
-                              })()}
+                        <TableCell className="print:text-sm print:p-0">
+                          ${product.price.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="print:text-sm print:p-0">
+                          $
+                          {(() => {
+                            const length =
+                              product.lengthFeet + product.lengthInches / 12;
+                            const width =
+                              product.widthFeet + product.widthInches / 12;
+                            return (length * width * product.price).toFixed(2);
+                          })()}
                         </TableCell>
 
-                        {!isViewMode && ( 
-                          <TableCell className='print:hidden'> 
+                        {!isViewMode && (
+                          <TableCell className="print:hidden">
                             <Button
-                            variant="destructive"
-                            onClick={() => removeProduct(index)}>
-                            <Trash className="h-4 w-4" />
+                              variant="destructive"
+                              onClick={() => removeProduct(index)}
+                            >
+                              <Trash className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         )}
-
-
-
-
                       </TableRow>
                     ))}
                   </TableBody>
@@ -500,29 +583,34 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({ quoteFilename, edit, 
               </div>
 
               <div className="print:hidden">
-              {!isViewMode && <Button type="submit">Create Quote</Button>}
-              {isQuoteSaved && (
-                <> 
-                  <Button type="button" onClick={handlePrint}>Print Quote</Button>
-                </> 
-              )}
-              {isViewMode && (
-                <Button type="button" onClick={handlePrint}>Print Quote</Button>
-              )} 
-              </div> 
-            </form> 
-          </Form> 
+                {!isViewMode && <Button type="submit">Create Quote</Button>}
+                {isQuoteSaved && (
+                  <>
+                    <Button type="button" onClick={handlePrint}>
+                      Print Quote
+                    </Button>
+                  </>
+                )}
+                {isViewMode && (
+                  <Button type="button" onClick={handlePrint}>
+                    Print Quote
+                  </Button>
+                )}
+              </div>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
-
   );
-}
+};
 
 export default function Page() {
-  return <Suspense fallback={<div>Loading...</div>}>
-    <SearchParamsWrapper><CreateQuotePage quoteFilename={null} edit={null} view={null} /></SearchParamsWrapper>
-  </Suspense>
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchParamsWrapper>
+        <CreateQuotePage quoteFilename={null} edit={null} view={null} />
+      </SearchParamsWrapper>
+    </Suspense>
+  );
 }
-
-

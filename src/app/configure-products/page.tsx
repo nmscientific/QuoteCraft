@@ -19,10 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
+import { Table, TableBody, TableCell,
   TableCaption,
   TableHead,
   TableHeader,
@@ -59,6 +56,31 @@ const productSchema = z.object({
     .min(0, {message: 'Price must be a positive number.'}),
   dimensions: z.string().optional(),
 });
+
+
+
+async function loadSalesTaxFromJson(): Promise<number> {
+  try {
+    const response = await fetch('/salestax.json', {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'},
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.warn('salestax.json not found. Using default value of 8.25.');
+        return 8.25; // Return the default value if the file is not found
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.salesTaxRate as number;
+  } catch (error: any) {
+    console.error('Error loading sales tax from file:', error);
+    return 8.25;
+  }
+}
 
 type Product = z.infer<typeof productSchema>;
 
@@ -102,6 +124,24 @@ async function saveProducts(products: Product[]): Promise<void> {
   }
 }
 
+
+async function saveSalesTax(salesTaxRate: number): Promise<void> {
+  try {
+    const response = await fetch('/api/salestax', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ salesTaxRate }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error saving sales tax via API:', error);
+    throw error;
+  }
+}
+
 export default function ConfigureProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const {toast} = useToast();
@@ -123,6 +163,17 @@ export default function ConfigureProductsPage() {
     const fetchProducts = async () => {
       try {
         const initialProducts = await loadProductsFromJson();
+        const initialSalesTaxRate = await loadSalesTaxFromJson();
+        setSalesTaxRate(initialSalesTaxRate);
+        toast({
+          title: 'Configuration loaded',
+          description: `Current Sales Tax Rate ${initialSalesTaxRate}%`,
+        });
+        
+      } catch (error) {
+        console.error('Failed to load Sales Tax Rate:', error);
+      }
+      try {
         setProducts(initialProducts.length > 0 ? initialProducts : []);
         if (initialProducts.length === 0) {
           toast({
@@ -134,16 +185,16 @@ export default function ConfigureProductsPage() {
       } catch (error: any) {
         console.error('Error loading products:', error);
         toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: error.message || 'Could not load product list.',
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Could not load product list.',
         });
         setProducts([]);
       }
     };
 
     fetchProducts();
-  }, [toast]);
+  }, []);
 
   async function onSubmit(values: Product) {
     try {
@@ -164,6 +215,15 @@ export default function ConfigureProductsPage() {
       });
     }
   }
+  const handleSaveSalesTax = async (value: number) => {
+      try {
+          await saveSalesTax(value);
+          toast({title: `Sales Tax Rate updated to ${value}%`});
+      } catch (error) {
+          console.error('Error saving sales tax:', error);
+          toast({variant: 'destructive', title: 'Error', description: 'Failed to save sales tax rate.'});
+      }
+  };
 
   const handleEdit = (index: number) => {
     setEditingIndex(index);
@@ -232,14 +292,11 @@ export default function ConfigureProductsPage() {
               <form
                 className="space-y-4"
                 onSubmit={e => {
-                  e.preventDefault();
-                  const value = parseFloat((e.target as any)[
-                    'salesTaxRate'
-                  ].value);
-                  setSalesTaxRate(isNaN(value) ? 0 : value);
-                  toast({title: `Sales Tax Rate updated to ${value}%`});
+                  e.preventDefault();//prevent default submit behavior
+                  const value = parseFloat((e.target as any)['salesTaxRate'].value);
+                  handleSaveSalesTax(isNaN(value) ? 0 : value);
                 }}
-              >
+                >
                 <FormItem>
                   <FormLabel>Sales Tax Rate (%)</FormLabel>
                   <FormControl>

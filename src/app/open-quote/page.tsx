@@ -16,6 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCaption, // Corrected: Added missing import
 } from '@/components/ui/table';
 import {
   AlertDialog,

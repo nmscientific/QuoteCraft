@@ -18,5 +18,10 @@
     "description": "Test Product Entry 4",
     "squareFootagePrice": 4,
     "dimensions": "added on studio"
+  },
+  {
+    "description": "Test Product Entry 5",
+    "squareFootagePrice": 5,
+    "dimensions": "to test editing"
   }
 ]

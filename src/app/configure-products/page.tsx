@@ -19,7 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {
   Table,
   TableBody,
   TableCell,
@@ -103,6 +102,7 @@ async function saveProducts(products: Product[]): Promise<void> {
 export default function ConfigureProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const {toast} = useToast();
+  const [salesTaxRate, setSalesTaxRate] = useState<number>(8.25);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const form = useForm<Product>({
@@ -222,13 +222,36 @@ export default function ConfigureProductsPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button variant="secondary" onClick={() => router.push('/')}>
-            Main Menu
+            Main Menue
           </Button>
+          <div>
+            <Form {...form}>
+              <form
+                className="space-y-4"
+                onSubmit={e => {
+                  e.preventDefault();
+                  const value = parseFloat((e.target as any)[
+                    'salesTaxRate'
+                  ].value);
+                  setSalesTaxRate(isNaN(value) ? 0 : value);
+                  toast({title: `Sales Tax Rate updated to ${value}%`});
+                }}
+              >
+                <FormItem>
+                  <FormLabel>Sales Tax Rate (%)</FormLabel>
+                  <FormControl>
+                    <Input name="salesTaxRate" type="number" defaultValue={salesTaxRate} placeholder="0.00" />
+                  </FormControl>
+                </FormItem>
+                <Button type="submit">Save Sales Tax Rate</Button>
+              </form>
+            </Form>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="description"
+                name="description"                
                 render={({field}) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
@@ -273,6 +296,7 @@ export default function ConfigureProductsPage() {
                   <FormItem>
                     <FormLabel>Dimensions (Optional)</FormLabel>
                     <FormControl>
+                    
                       <Input placeholder="e.g., 1/4 inch" {...field} />
                     </FormControl>
                     <FormDescription>
@@ -283,7 +307,6 @@ export default function ConfigureProductsPage() {
                 )}
               />
               <Button type="submit">Add Product</Button>
-            </form>
           </Form>
 
           <div className="relative overflow-x-auto shadow-md sm:rounded-lg">

@@ -1,0 +1,25 @@
+{
+  "customerName": "Test Customer",
+  "projectName": "Software Test",
+  "description": "Created 4:58pm April 24",
+  "products": [
+    {
+      "productDescription": "Test Product Entry 1",
+      "lengthFeet": 0,
+      "lengthInches": 0,
+      "widthFeet": 0,
+      "widthInches": 0,
+      "price": 1
+    },
+    {
+      "productDescription": "Test Product Entry 2",
+      "lengthFeet": 0,
+      "lengthInches": 0,
+      "widthFeet": 0,
+      "widthInches": 0,
+      "price": 2
+    }
+  ],
+  "total": 0,
+  "quoteNumber": "0425251701"
+}

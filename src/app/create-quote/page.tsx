@@ -261,13 +261,21 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
     setIsQuoteSaved(false);
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return products.reduce((total, product) => {
       const length = product.lengthFeet + product.lengthInches / 12;
       const width = product.widthFeet + product.widthInches / 12;
       return total + length * width * product.price;
     }, 0);
   };
+
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    const salesTaxRate = 0.0825; // 8.25% sales tax
+    const salesTax = subtotal * salesTaxRate;
+    return subtotal + salesTax;
+  };
+
 
   const onSubmit = async (values: Quote) => {
     const now = new Date();
@@ -278,7 +286,8 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
     const min = now.getMinutes().toString().padStart(2, '0');
     console.log('onSubmit');
     const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
-    const total = calculateTotal();
+    const subtotal = calculateSubtotal();
+    const total = calculateGrandTotal();
 
     const quoteData = {
       customerName: values.customerName,
@@ -286,7 +295,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
       description: values.description,
       quoteNumber,
       products: products,
-      total: total,
+      total: subtotal,
     };
 
     try {
@@ -579,7 +588,10 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
                 </Table>
               </div>
               <div>
-                <Label>Total: ${calculateTotal().toFixed(2)}</Label>
+                <Label>Subtotal: ${calculateSubtotal().toFixed(2)}</Label>
+              </div>
+              <div>
+                 <Label>Grand Total (including 8.25% sales tax): ${calculateGrandTotal().toFixed(2)}</Label>
               </div>
 
               <div className="print:hidden">
@@ -614,3 +626,4 @@ export default function Page() {
     </Suspense>
   );
 }
+

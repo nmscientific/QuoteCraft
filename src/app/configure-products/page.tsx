@@ -222,7 +222,7 @@ export default function ConfigureProductsPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button variant="secondary" onClick={() => router.push('/')}>
-            Home
+            Main Menu
           </Button>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

@@ -342,7 +342,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
         </CardHeader>
         <CardContent className="grid gap-4 print:mb-2">
           <Button variant="secondary" onClick={() => router.push('/')}>
-            Home
+            Main Menu
           </Button>
           <Form {...form}>
             <form

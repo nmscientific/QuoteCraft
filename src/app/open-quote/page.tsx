@@ -12,7 +12,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -146,7 +145,7 @@ export default function OpenQuotePage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button variant="secondary" onClick={() => router.push('/')}>
-            Home
+            Main Menu
           </Button>
           {quoteFiles.length === 0 ? (
             <p>No quotes found.</p>

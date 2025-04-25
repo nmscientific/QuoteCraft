@@ -3,6 +3,14 @@
 import fs from 'fs';
 import {Quote} from '@/types';
 
+const QUOTES_DIR = 'public/quotes';
+
+async function ensureDirectoryExists() {
+  if (!fs.existsSync(QUOTES_DIR)) {
+    fs.mkdirSync(QUOTES_DIR, {recursive: true});
+  }
+}
+
 export async function saveQuote(quoteData: Quote) {
   const now = new Date();
   const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -21,13 +29,10 @@ export async function saveQuote(quoteData: Quote) {
     quoteNumber,
   };
 
-  const quotesDir = 'public/quotes';
-  const filePath = `${quotesDir}/quote-${quoteNumber}.json`;
+  const filePath = `${QUOTES_DIR}/quote-${quoteNumber}.json`;
 
   try {
-    if (!fs.existsSync(quotesDir)) {
-      fs.mkdirSync(quotesDir, {recursive: true});
-    }
+    await ensureDirectoryExists();
     await fs.promises.writeFile(filePath, JSON.stringify(quoteWithNumber, null, 2));
     return {success: true, message: `Quote saved as quote-${quoteNumber}.json`};
   } catch (error) {
@@ -35,3 +40,17 @@ export async function saveQuote(quoteData: Quote) {
     return {success: false, message: 'Error saving quote'};
   }
 }
+
+export async function updateQuote(quoteData: Quote, quoteFilename: string) {
+  const filePath = `${QUOTES_DIR}/${quoteFilename}`;
+
+  try {
+    await ensureDirectoryExists();
+    await fs.promises.writeFile(filePath, JSON.stringify(quoteData, null, 2));
+    return {success: true, message: `Quote updated successfully!`};
+  } catch (error) {
+    console.error('Error updating quote:', error);
+    return {success: false, message: 'Error updating quote'};
+  }
+}
+

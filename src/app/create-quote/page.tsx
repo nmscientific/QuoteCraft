@@ -2,7 +2,7 @@
 
 import {useState, useEffect, Suspense, useMemo} from 'react';
 import logo from '@/public/logo.png';
-import {saveQuote} from '@/app/actions';
+import {saveQuote, updateQuote} from '@/app/actions';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -278,34 +278,43 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
 
 
   const onSubmit = async (values: Quote) => {
-    const now = new Date();
-    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-    const dd = now.getDate().toString().padStart(2, '0');
-    const yy = now.getFullYear().toString().slice(-2);
-    const hh = now.getHours().toString().padStart(2, '0');
-    const min = now.getMinutes().toString().padStart(2, '0');
-    console.log('onSubmit');
-    const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
     const subtotal = calculateSubtotal();
-    const total = calculateGrandTotal();
 
     const quoteData = {
       customerName: values.customerName,
       projectName: values.projectName,
       description: values.description,
-      quoteNumber,
       products: products,
       total: subtotal,
     };
 
     try {
-      const result = await saveQuote(quoteData);
+      let result;
+      if (isEditMode && quoteFilename) {
+        //If edit mode, update the existing quote
+        result = await updateQuote(quoteData, quoteFilename);
+      } else {
+        //If creating a new quote, generate a quote number
+        const now = new Date();
+        const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+        const dd = now.getDate().toString().padStart(2, '0');
+        const yy = now.getFullYear().toString().slice(-2);
+        const hh = now.getHours().toString().padStart(2, '0');
+        const min = now.getMinutes().toString().padStart(2, '0');
+        const quoteNumber = `${mm}${dd}${yy}${hh}${min}`;
+
+        result = await saveQuote({...quoteData, quoteNumber});
+      }
+
       if (result.success) {
         setIsQuoteSaved(true);
         toast({
           title: 'Quote created successfully!',
           description: result.message,
         });
+        if (!isEditMode) {
+          router.push('/open-quote'); // Redirect to open quote page after creating a new quote
+        }
       } else {
         toast({
           variant: 'destructive',
@@ -595,7 +604,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
               </div>
 
               <div className="print:hidden">
-                {!isViewMode && <Button type="submit">Create Quote</Button>}
+                {!isViewMode && <Button type="submit">{isEditMode ? "Update Quote" : "Create Quote"}</Button>}
                 {isQuoteSaved && (
                   <>
                     <Button type="button" onClick={handlePrint}>
@@ -626,4 +635,3 @@ export default function Page() {
     </Suspense>
   );
 }
-

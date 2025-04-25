@@ -169,7 +169,7 @@ export default function OpenQuotePage() {
                 <TableCaption>List of saved quotes</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Filename</TableHead>
+                    <TableHead>Quote #</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Project</TableHead>
                     <TableHead>Actions</TableHead>
@@ -181,9 +181,10 @@ export default function OpenQuotePage() {
                     if (!quote) {
                       return null; // Skip if quote data is not available
                     }
+                    const quoteNumber = file.replace('quote-', '').replace('.json', '');
                     return (
                       <TableRow key={file}>
-                        <TableCell>{file}</TableCell>
+                        <TableCell>{quoteNumber}</TableCell>
                         <TableCell>{quote.customerName}</TableCell>
                         <TableCell>{quote.projectName}</TableCell>
                         <TableCell>
@@ -244,4 +245,3 @@ export default function OpenQuotePage() {
     </div>
   );
 }
-

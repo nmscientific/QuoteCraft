@@ -29,7 +29,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect} from 'react';
@@ -46,6 +45,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {useRouter} from 'next/navigation';
+import {z} from 'zod';
 
 const productSchema = z.object({
   description: z.string().min(2, {
@@ -448,3 +448,4 @@ export default function ConfigureProductsPage() {
     </div>
   );
 }
+

@@ -29,8 +29,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
+  useForm
+} from 'react-hook-form';
 import {useEffect} from 'react';
 import {Trash2, Edit} from 'lucide-react';
 import {
@@ -45,7 +45,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {useRouter} from 'next/navigation';
-import {z} from 'zod';
+import {z} from 'zod';import { zodResolver } from '@hookform/resolvers/zod';
+
 
 const productSchema = z.object({
   description: z.string().min(2, {

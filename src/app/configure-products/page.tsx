@@ -19,7 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -35,6 +34,18 @@ import {z} from 'zod';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect} from 'react';
+import { Trash2, Edit } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const productSchema = z.object({
   description: z.string().min(2, {
@@ -50,7 +61,7 @@ type Product = z.infer<typeof productSchema>;
 
 async function loadProductsFromJson(): Promise<Product[]> {
   try {
-    const response = await fetch('/products.json', {
+    const response = await fetch('/api/products', {
       method: 'GET',
       headers: {'Content-Type': 'application/json'},
     });
@@ -64,31 +75,14 @@ async function loadProductsFromJson(): Promise<Product[]> {
     }
 
     const data = await response.json();
-    return data as Product[];
+    return data.products as Product[];
   } catch (error: any) {
     console.error('Error loading products from API:', error);
     return [];
   }
 }
 
-async function loadProducts(): Promise<Product[]> {
-  try {
-    const products = await loadProductsFromJson();
 
-    if (products.length === 0) {
-      console.warn(
-        'products.json empty or not loaded. Using an empty array.'
-      );
-    }
-
-    return products;
-  } catch (error: any) {
-    console.error(
-      'Error loading products data, error parsing the json or fetch failed.', error
-    );
-    return []; // Return an empty array in case of any error
-  }
-}
 
 async function saveProducts(products: Product[]): Promise<void> {
   try {
@@ -110,6 +104,8 @@ async function saveProducts(products: Product[]): Promise<void> {
 export default function ConfigureProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const {toast} = useToast();
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
 
   const form = useForm<Product>({
     resolver: zodResolver(productSchema),
@@ -123,7 +119,7 @@ export default function ConfigureProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const initialProducts = await loadProducts();
+        const initialProducts = await loadProductsFromJson();
         setProducts(initialProducts.length > 0 ? initialProducts : []);
         if (initialProducts.length === 0){
             toast({
@@ -165,6 +161,55 @@ export default function ConfigureProductsPage() {
       });
     }
   }
+
+  const handleEdit = (index: number) => {
+    setEditingIndex(index);
+    form.setValue('description', products[index].description);
+    form.setValue('squareFootagePrice', products[index].squareFootagePrice);
+    form.setValue('dimensions', products[index].dimensions || '');
+  };
+
+  const handleUpdate = async (index: number, values: Product) => {
+    try {
+      const updatedProducts = [...products];
+      updatedProducts[index] = values;
+      await saveProducts(updatedProducts);
+      setProducts(updatedProducts);
+      setEditingIndex(null);
+      form.reset();
+      toast({
+        title: 'Product updated successfully!',
+        description: 'Your product has been updated.',
+      });
+    } catch (error: any) {
+      console.error('Error updating products:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Could not update product.',
+      });
+    }
+  };
+
+  const handleDelete = async (index: number) => {
+    try {
+      const updatedProducts = [...products];
+      updatedProducts.splice(index, 1);
+      await saveProducts(updatedProducts);
+      setProducts(updatedProducts);
+      toast({
+        title: 'Product deleted successfully!',
+        description: 'Your product has been deleted from the list.',
+      });
+    } catch (error: any) {
+      console.error('Error deleting products:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Could not delete product.',
+      });
+    }
+  };
 
   return (
     <div className="container py-10">
@@ -246,6 +291,7 @@ export default function ConfigureProductsPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Price/Sq. Ft.</TableHead>
                   <TableHead>Dimensions</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,6 +300,116 @@ export default function ConfigureProductsPage() {
                     <TableCell>{product.description}</TableCell>
                     <TableCell>${product.squareFootagePrice.toFixed(2)}</TableCell>
                     <TableCell>{product.dimensions || 'N/A'}</TableCell>
+                    <TableCell>
+                      {editingIndex === index ? (
+                        <Form {...form}>
+                          <form
+                            onSubmit={form.handleSubmit((values) =>
+                              handleUpdate(index, values)
+                            )}
+                            className="space-y-2"
+                          >
+                            <FormField
+                              control={form.control}
+                              name="description"
+                              render={({field}) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Product description"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="squareFootagePrice"
+                              render={({field}) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="0.00"
+                                      {...field}
+                                      onChange={e => {
+                                        const value = parseFloat(e.target.value);
+                                        field.onChange(isNaN(value) ? 0 : value);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="dimensions"
+                              render={({field}) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., 1/4 inch"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <Button type="submit" size="sm">
+                              Update
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setEditingIndex(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </form>
+                        </Form>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(index)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" /> Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete the product.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(index)}
+                                >
+                                  Continue
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -484,11 +484,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
                       <TableHead>Width (In)</TableHead>
                       <TableHead>Price/Sq. Ft.</TableHead>
                       <TableHead>Total</TableHead>                      
-                        {/* Hide the "Actions" column in print view */}
-                      
-                      <TableHead className='print:hidden'>Actions</TableHead>
-                     
-                      {!isViewMode && <TableHead>Actions</TableHead>}
+                      {!isViewMode && <TableHead className='print:hidden'>Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>

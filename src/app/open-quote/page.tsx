@@ -68,26 +68,39 @@ export default function OpenQuotePage() {
           return;
         }
 
-        setQuoteFiles(files.filter(file => file.endsWith('.json')));
+        // Sort files by date (newest to oldest)
+        const sortedFiles = files
+          .filter(file => file.endsWith('.json'))
+          .sort((a, b) => {
+            // Extract timestamp from filename (assuming format quote-MMDDYYHHMM.json)
+            const timestampA = a.match(/quote-(\d+)\.json/)?.[1];
+            const timestampB = b.match(/quote-(\d+)\.json/)?.[1];
+
+            if (timestampA && timestampB) {
+              // Compare timestamps to sort files
+              return timestampB.localeCompare(timestampA);
+            }
+            return 0; // Keep original order if timestamp extraction fails
+          });
+
+        setQuoteFiles(sortedFiles);
 
         const loadedQuotes: {[filename: string]: Quote} = {};
-        for (const file of files) {
-          if (file.endsWith('.json')) {
-            try {
-              const fileContent = await readFile(`public/quotes/${file}`);
-              if (fileContent) {
-                loadedQuotes[file] = JSON.parse(fileContent);
-              } else {
-                console.warn(`Could not read content of file: ${file}`);
-              }
-            } catch (parseError) {
-              console.error(`Error parsing file ${file}:`, parseError);
-              toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: `Could not parse file ${file}.`,
-              });
+        for (const file of sortedFiles) {
+          try {
+            const fileContent = await readFile(`public/quotes/${file}`);
+            if (fileContent) {
+              loadedQuotes[file] = JSON.parse(fileContent);
+            } else {
+              console.warn(`Could not read content of file: ${file}`);
             }
+          } catch (parseError) {
+            console.error(`Error parsing file ${file}:`, parseError);
+            toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: `Could not parse file ${file}.`,
+            });
           }
         }
         setQuotesData(loadedQuotes);
@@ -231,3 +244,4 @@ export default function OpenQuotePage() {
     </div>
   );
 }
+

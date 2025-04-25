@@ -1,0 +1,25 @@
+{
+  "customerName": "Test Customer",
+  "projectName": "sales tax test",
+  "description": "This is a sales tax test",
+  "products": [
+    {
+      "productDescription": "Test Product Entry 1",
+      "lengthFeet": 1,
+      "lengthInches": 0,
+      "widthFeet": 1,
+      "widthInches": 0,
+      "price": 1
+    },
+    {
+      "productDescription": "Test Product Entry 2",
+      "lengthFeet": 1,
+      "lengthInches": 0,
+      "widthFeet": 1,
+      "widthInches": 2,
+      "price": 2
+    }
+  ],
+  "total": 3.3333333333333335,
+  "quoteNumber": "0425251707"
+}

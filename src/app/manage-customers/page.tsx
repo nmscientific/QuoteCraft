@@ -49,9 +49,7 @@ export default function CustomerManagementPage() {
   }
 
   const resetNewCustomerForm = () => {
-    setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });
-  });
-  const [editCustomerData, setEditCustomerData] = useState<Omit<Customer, 'id'> | null>(null); // For editing
+    setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });  };
 
   const handleAddCustomer = () => {
     const customerToAdd: Customer = { id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1, ...newCustomer };
@@ -105,11 +103,8 @@ export default function CustomerManagementPage() {
     setIsEditModalOpen(false);
   };
 
+  // Original handleDeleteCustomer implementation (client-side only)
   const handleDeleteCustomer = (id: number) => {
-    setCustomers(customers.filter((c) => c.id !== id));
-  };
-
-  return (
     const handleDeleteCustomer = (id: number) => {
     // Send DELETE request to the API to delete the customer
     fetch(`/api/customers?id=${id}`, {
@@ -118,6 +113,11 @@ export default function CustomerManagementPage() {
       .then(res => res.json())
       .then(data => setCustomers(data)) // Update state with data from the server
       .catch(error => console.error('Error deleting customer:', error));
+    <div className="container mx-auto py-8">
+    setCustomers(customers.filter((c) => c.id !== id));
+  };
+
+  return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Customer Management</h1>
 

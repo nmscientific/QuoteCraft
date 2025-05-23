@@ -43,7 +43,6 @@ const CustomerManagementPage = () => {
         } else {
           console.error("API did not return an array:", data);
           setCustomers([]);
-      .then(data => setCustomers(data))
       .catch(error => console.error('Error fetching customers:', error));
   }, []);
 

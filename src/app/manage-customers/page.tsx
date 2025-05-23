@@ -36,7 +36,6 @@ const CustomerManagementPage = () => {
   useEffect(() => {
     // Fetch customers from the API when the page loads
     fetch('/api/customers')
-      .then(res => res.json())// Add check to ensure data is an array before setting state
       .then(data => {
         if (Array.isArray(data)) {
           setCustomers(data);
@@ -51,7 +50,6 @@ const CustomerManagementPage = () => {
   const fetchCustomers = () => {
     fetch('/api/customers')
       .then(res => res.json())
-      .then(data => {
         if (Array.isArray(data)) {
           setCustomers(data);
         } else {
@@ -60,7 +58,6 @@ const CustomerManagementPage = () => {
         }10
       })
       .catch(error => console.error('Error fetching customers:', error));
-  }
 
   const resetNewCustomerForm = () => {
     setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });
@@ -120,10 +117,21 @@ const CustomerManagementPage = () => {
 
   const handleDeleteCustomer = (id: number) => {
     fetch(`/api/customers?id=${id}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
-      .then(res => res.json())
-      .then(data => setCustomers(data)) // Update state with data from the server
+      .then(async res => {
+        if (res.ok) {
+          // If deletion was successful (status 200)
+          setCustomers(customers.filter((c) => c.id !== id)); // Update state by filtering
+        } else if (res.status === 404) {
+          // If customer not found
+          const errorData = await res.json();
+          alert(errorData.message || 'Customer not found'); // Display a message
+        } else {
+          // Handle other errors
+          console.error('Error deleting customer:', res.status, await res.text());
+        }
+      })
       .catch(error => console.error('Error deleting customer:', error));
     // setCustomers(customers.filter((c) => c.id !== id)); // State update will happen after fetching from the server
   };
@@ -232,6 +240,7 @@ const CustomerManagementPage = () => {
               <TableCell>{customer.email}</TableCell>
               <TableCell className="text-right">
               <Button
+ // Add check to ensure data is an array before setting state
                   variant="outline"
                   size="sm"
                   onClick={() => handleEditCustomer(customer)}

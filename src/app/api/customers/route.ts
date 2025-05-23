@@ -76,7 +76,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { id } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     let customers = await readCustomers();
     const initialLength = customers.length;
     customers = customers.filter(cust => cust.id !== id);

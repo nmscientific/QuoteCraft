@@ -34,6 +34,7 @@ async function writeCustomers(customers: Customer[]): Promise<void> {
 export async function GET(request: NextRequest) {
   try {
     const customers = await readCustomers();
+    return NextResponse.json(customers);
   } catch (error: any) {
     console.error('Error reading customers:', error);
     return NextResponse.json({ message: 'Error reading customers' }, { status: 500 });
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
     const customerToAdd: Customer = { id: Date.now().toString(), ...newCustomer }; // Simple ID generation
     customers.push(customerToAdd);
     await writeCustomers(customers);
+    return NextResponse.json(customerToAdd, { status: 201 });
   } catch (error: any) {
     console.error('Error adding customer:', error);
     return NextResponse.json({ message: 'Error adding customer' }, { status: 500 });
@@ -65,6 +67,7 @@ export async function PUT(request: NextRequest) {
 
     customers[index] = updatedCustomer;
     await writeCustomers(customers);
+    return NextResponse.json(updatedCustomer);
   } catch (error: any) {
     console.error('Error updating customer:', error);
     return NextResponse.json({ message: 'Error updating customer' }, { status: 500 });
@@ -83,6 +86,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await writeCustomers(customers);
+    return NextResponse.json({ message: 'Customer deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting customer:', error);
     return NextResponse.json({ message: 'Error deleting customer' }, { status: 500 });

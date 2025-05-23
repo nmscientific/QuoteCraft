@@ -43,6 +43,8 @@ const CustomerManagementPage = () => {
         } else {
           console.error("API did not return an array:", data);
           setCustomers([]);
+        }
+      })
       .catch(error => console.error('Error fetching customers:', error));
   }, []);
 
@@ -55,7 +57,8 @@ const CustomerManagementPage = () => {
         } else {
           console.error("API did not return an array:", data);
           setCustomers([]);
-        }
+        }10
+      })
       .catch(error => console.error('Error fetching customers:', error));
   }
 

@@ -36,7 +36,13 @@ const CustomerManagementPage = () => {
   useEffect(() => {
     // Fetch customers from the API when the page loads
     fetch('/api/customers')
-      .then(res => res.json())
+      .then(res => res.json())// Add check to ensure data is an array before setting state
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCustomers(data);
+        } else {
+          console.error("API did not return an array:", data);
+          setCustomers([]);
       .then(data => setCustomers(data))
       .catch(error => console.error('Error fetching customers:', error));
   }, []);
@@ -44,7 +50,13 @@ const CustomerManagementPage = () => {
   const fetchCustomers = () => {
     fetch('/api/customers')
       .then(res => res.json())
-      .then(data => setCustomers(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCustomers(data);
+        } else {
+          console.error("API did not return an array:", data);
+          setCustomers([]);
+        }
       .catch(error => console.error('Error fetching customers:', error));
   }
 

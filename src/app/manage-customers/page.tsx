@@ -113,8 +113,7 @@ export default function CustomerManagementPage() {
       .then(res => res.json())
       .then(data => setCustomers(data)) // Update state with data from the server
       .catch(error => console.error('Error deleting customer:', error));
-    <div className="container mx-auto py-8">
-    setCustomers(customers.filter((c) => c.id !== id));
+    // setCustomers(customers.filter((c) => c.id !== id)); // State update will happen after fetching from the server
   };
 
   return (
@@ -221,10 +220,10 @@ export default function CustomerManagementPage() {
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+
+<TableBody>
           {customers.map((customer) => (
             <TableRow key={customer.id}>
-              <TableCell>{customer.id}</TableCell>
               <TableCell>{customer.companyName}</TableCell>
               <TableCell>{customer.representativeName}</TableCell>
               <TableCell>{customer.address}</TableCell>
@@ -232,7 +231,6 @@ export default function CustomerManagementPage() {
               <TableCell>{customer.email}</TableCell>
               <TableCell className="text-right">
                 <TableCell>{customer.taxExempt ? 'Yes' : 'No'}</TableCell>
-                <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditCustomer(customer)}>
                   Edit
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>

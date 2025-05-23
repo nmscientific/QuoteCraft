@@ -53,7 +53,7 @@ export default function CustomerManagementPage() {
 
   const handleAddCustomer = () => {
     const customerToAdd: Customer = { id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1, ...newCustomer };
-    setCustomers([...customers, customerToAdd]);
+    // setCustomers([...customers, customerToAdd]); // State update will happen after fetching from the server
     setNewCustomer({ name: '', email: '' });
     // Send POST request to the API to add the customer
     fetch('/api/customers', {
@@ -66,7 +66,7 @@ export default function CustomerManagementPage() {
       .then(res => res.json())
       .then(data => {
         setCustomers(data); // Update state with data from the server
-        resetNewCustomerForm();
+        // resetNewCustomerForm(); // No longer needed here, done after modal close
       })
       .catch(error => console.error('Error adding customer:', error));
     setIsAddModalOpen(false);
@@ -85,7 +85,7 @@ export default function CustomerManagementPage() {
 
   const handleSaveCustomer = () => {
     if (currentCustomer && editCustomerData) {
-      setCustomers(customers.map((c) => (c.id === currentCustomer.id ? { ...currentCustomer, ...editCustomerData } : c)));
+      // setCustomers(customers.map((c) => (c.id === currentCustomer.id ? { ...currentCustomer, ...editCustomerData } : c))); // State update will happen after fetching from the server
       setIsEditModalOpen(false);
       // Send PUT request to the API to update the customer
       fetch(`/api/customers?id=${currentCustomer.id}`, {
@@ -103,10 +103,7 @@ export default function CustomerManagementPage() {
     setIsEditModalOpen(false);
   };
 
-  // Original handleDeleteCustomer implementation (client-side only)
   const handleDeleteCustomer = (id: number) => {
-    const handleDeleteCustomer = (id: number) => {
-    // Send DELETE request to the API to delete the customer
     fetch(`/api/customers?id=${id}`, {
       method: 'DELETE',
     })
@@ -115,6 +112,7 @@ export default function CustomerManagementPage() {
       .catch(error => console.error('Error deleting customer:', error));
     // setCustomers(customers.filter((c) => c.id !== id)); // State update will happen after fetching from the server
   };
+
 
   return (
     <div className="container mx-auto py-8">
@@ -174,13 +172,6 @@ export default function CustomerManagementPage() {
                   className="col-span-3"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
                   value={newCustomer.email}
                   onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
                   className="col-span-3"

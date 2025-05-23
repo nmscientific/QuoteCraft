@@ -18,7 +18,7 @@ interface Customer {
   taxExempt: boolean;
 }
 
-export default function CustomerManagementPage() {
+const CustomerManagementPage = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -49,7 +49,8 @@ export default function CustomerManagementPage() {
   }
 
   const resetNewCustomerForm = () => {
-    setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });  };
+    setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });
+  };
 
   const handleAddCustomer = () => {
     const customerToAdd: Customer = { id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1, ...newCustomer };
@@ -113,7 +114,6 @@ export default function CustomerManagementPage() {
     // setCustomers(customers.filter((c) => c.id !== id)); // State update will happen after fetching from the server
   };
 
-
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Customer Management</h1>
@@ -172,11 +172,6 @@ export default function CustomerManagementPage() {
                   className="col-span-3"
                 />
               </div>
-                  value={newCustomer.email}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="taxExempt" className="text-right">
                   Tax Exempt
@@ -212,20 +207,26 @@ export default function CustomerManagementPage() {
           </TableRow>
         </TableHeader>
 
-<TableBody>
+        <TableBody>
           {customers.map((customer) => (
             <TableRow key={customer.id}>
+              <TableCell>{customer.id}</TableCell>
               <TableCell>{customer.companyName}</TableCell>
               <TableCell>{customer.representativeName}</TableCell>
               <TableCell>{customer.address}</TableCell>
               <TableCell>{customer.phone}</TableCell>
               <TableCell>{customer.email}</TableCell>
               <TableCell className="text-right">
-                <TableCell>{customer.taxExempt ? 'Yes' : 'No'}</TableCell>
-                  Edit
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
-                  Delete
+              <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditCustomer(customer)}
+                  className="mr-2"
+                >
+ Edit
+ </Button>
+ <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
+ Delete
                 </Button>
               </TableCell>
             </TableRow>
@@ -316,4 +317,5 @@ export default function CustomerManagementPage() {
       </Dialog>
     </div>
   );
-}
+};
+export default CustomerManagementPage;

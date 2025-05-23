@@ -1,13 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"; // Assuming you have a table component
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+// You might need other imports for modals, checkboxes, etc.
+// import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+// import { Checkbox } from "@/components/ui/checkbox";
 
+// Define a type for your customer data
 interface Customer {
   id: number;
   companyName: string;
@@ -19,326 +27,351 @@ interface Customer {
 }
 
 const CustomerManagementPage = () => {
+  // State for managing customer data
   const [customers, setCustomers] = useState<Customer[]>([]);
+  // State for managing new customer input
+  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id'>>({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });
+  // State for managing edit customer input and currently editing customer ID
+  // State for managing edit customer input
+  const [editCustomerData, setEditCustomerData] = useState<Omit<Customer, 'id'> | null>(null);
+  const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
+  // State for controlling modal visibility
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null); // For editing
-  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id'>>({
-    companyName: '',
-    representativeName: '',
-    address: '', // Added address
-    phone: '', // Added phone
-    email: '',
-    taxExempt: false,
-  });
-  const [editCustomerData, setEditCustomerData] = useState<Omit<Customer, 'id'> | null>(null); // For editing
 
-  useEffect(() => {
-    // Fetch customers from the API when the page loads
-    fetch('/api/customers')
-      .then(data => {
-        if (Array.isArray(data)) {
-          setCustomers(data);
-        } else {
-          console.error("API did not return an array:", data);
-          setCustomers([]);
-        }
-      })
-      .catch(error => console.error('Error fetching customers:', error));
-  }, []);
-
-  const fetchCustomers = () => {
-    fetch('/api/customers')
-      .then(res => res.json())
-        if (Array.isArray(data)) {
-          setCustomers(data);
-        } else {
-          console.error("API did not return an array:", data);
-          setCustomers([]);
-        }10
-      })
-      .catch(error => console.error('Error fetching customers:', error));
-
-  const resetNewCustomerForm = () => {
-    setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false });
+  // Handler for input changes in the new customer form
+  const handleNewCustomerInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    setNewCustomer(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
   };
 
-  const handleAddCustomer = () => {
-    const customerToAdd: Customer = { id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1, ...newCustomer };
-    // setCustomers([...customers, customerToAdd]); // State update will happen after fetching from the server
-    setNewCustomer({ name: '', email: '' });
-    // Send POST request to the API to add the customer
-    fetch('/api/customers', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(customerToAdd),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setCustomers(data); // Update state with data from the server
-        // resetNewCustomerForm(); // No longer needed here, done after modal close
-      })
-      .catch(error => console.error('Error adding customer:', error));
-    setIsAddModalOpen(false);
-    resetNewCustomerForm();
+  // Handler for input changes in the edit customer form
+  const handleEditCustomerInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    setEditCustomerData(prev => {
+      if (!prev) return null; // Should not happen if modal is open, but for safety
+      return {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+    });
   };
 
+  // Handler for adding a new customer
+  const handleAddCustomer = async () => {
+    try {
+      const response = await fetch('/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCustomer),
+      });
+
+      if (response.ok) {
+        const addedCustomer = await response.json();
+        setCustomers(prev => [...prev, addedCustomer]); // Add the new customer to the state
+        setNewCustomer({ companyName: '', representativeName: '', address: '', phone: '', email: '', taxExempt: false }); // Reset form
+        setIsAddModalOpen(false); // Close modal
+      } else {
+        console.error('Failed to add customer:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error adding customer:', error);
+    }
+  };
+
+  // Handler for opening the edit modal and populating it
   const handleEditCustomer = (customer: Customer) => {
-    setCurrentCustomer(customer);
-    setEditCustomerData({ ...customer }); // Initialize edit form with current customer data
+    setEditingCustomerId(customer.id);
+    // Omit the 'id' property when setting editCustomerData
+    const { id, ...rest } = customer;
+    setEditCustomerData(rest);
     setIsEditModalOpen(true);
   };
 
-  const handleTaxExemptChange = (checked: boolean) => {
-    setNewCustomer({ ...newCustomer, taxExempt: checked });
-  };
+  // Handler for updating a customer
+  const handleUpdateCustomer = async () => {
+    if (editingCustomerId === null || editCustomerData === null) {
+      console.error("No customer selected for editing.");
+      return;
+    }
 
-  const handleSaveCustomer = () => {
-    if (currentCustomer && editCustomerData) {
-      // setCustomers(customers.map((c) => (c.id === currentCustomer.id ? { ...currentCustomer, ...editCustomerData } : c))); // State update will happen after fetching from the server
-      setIsEditModalOpen(false);
-      // Send PUT request to the API to update the customer
-      fetch(`/api/customers?id=${currentCustomer.id}`, {
+    try {
+      const response = await fetch(`/api/customers`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...currentCustomer, ...editCustomerData }),
-      })
-        .then(res => res.json())
-        .then(data => setCustomers(data)) // Update state with data from the server
-        .catch(error => console.error('Error updating customer:', error));
-      setCurrentCustomer(null); // Clear current customer after saving
+        body: JSON.stringify({ id: editingCustomerId, ...editCustomerData }), // Include the ID in the body
+      });
+
+      if (response.ok) {
+        const updatedCustomer = await response.json();
+        setCustomers(customers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c)); // Update the state
+        setIsEditModalOpen(false); // Close modal
+        setEditingCustomerId(null); // Reset editing state
+      } else {
+        console.error('Failed to update customer:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating customer:', error);
     }
-    setIsEditModalOpen(false);
+  };
+  // Handler for deleting a customer
+  const handleDeleteCustomer = async (id: number) => {
+    // Ask for confirmation before deleting
+    if (!window.confirm('Are you sure you want to delete this customer?')) {
+      return; // Stop if the user cancels
+    }
+
+    try {
+      // Send DELETE request to the API to delete the customer
+      const response = await fetch(`/api/customers?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Filter out the deleted customer from the state
+        setCustomers(customers.filter((c) => c.id !== id));
+        console.log(`Customer with ID ${id} deleted successfully.`);
+      } else if (response.status === 404) {
+        console.error(`Customer with ID ${id} not found.`);
+        alert(`Customer with ID ${id} not found.`); // Inform the user
+      } else {
+        console.error('Failed to delete customer:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+    }
   };
 
-  const handleDeleteCustomer = (id: number) => {
-    fetch(`/api/customers?id=${id}`, {
-      method: 'DELETE'
-    })
-      .then(async res => {
-        if (res.ok) {
-          // If deletion was successful (status 200)
-          setCustomers(customers.filter((c) => c.id !== id)); // Update state by filtering
-        } else if (res.status === 404) {
-          // If customer not found
-          const errorData = await res.json();
-          alert(errorData.message || 'Customer not found'); // Display a message
+  useEffect(() => {
+    // Fetch customers from the API when the page loads
+    fetch('/api/customers')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCustomers(data);
         } else {
-          // Handle other errors
-          console.error('Error deleting customer:', res.status, await res.text());
+          console.error("API did not return an array:", data);
+          setCustomers([]);
         }
       })
-      .catch(error => console.error('Error deleting customer:', error));
-    // setCustomers(customers.filter((c) => c.id !== id)); // State update will happen after fetching from the server
-  };
+      .catch(error => {
+        console.error('Error fetching customers:', error);
+        setCustomers([]); // Set to empty array on fetch error
+      });
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">Customer Management</h1>
 
+      {/* Add Customer Button */}
       <div className="flex justify-end mb-4">
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Customer</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="companyName" className="text-right">
-                  Company Name
-                </Label>
-                <Input
-                  id="companyName"
-                  value={newCustomer.companyName}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, companyName: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="representativeName" className="text-right">
-                  Representative Name
-                </Label>
-                <Input
-                  id="representativeName"
-                  value={newCustomer.representativeName}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, representativeName: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  value={newCustomer.address}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">
-                  Phone
-                </Label>
-                <Input
-                  id="phone"
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="taxExempt" className="text-right">
-                  Tax Exempt
-                </Label>
-                <Checkbox id="taxExempt" checked={newCustomer.taxExempt} onCheckedChange={handleTaxExemptChange} className="col-span-3" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={newCustomer.email}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddCustomer}>Add Customer</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsAddModalOpen(true)}>Add New Customer</Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Representative</TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Tax Exempt</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {customers.map((customer) => (
-            <TableRow key={customer.id}>
-              <TableCell>{customer.id}</TableCell>
-              <TableCell>{customer.companyName}</TableCell>
-              <TableCell>{customer.representativeName}</TableCell>
-              <TableCell>{customer.address}</TableCell>
-              <TableCell>{customer.phone}</TableCell>
-              <TableCell>{customer.email}</TableCell>
-              <TableCell className="text-right">
-              <Button
- // Add check to ensure data is an array before setting state
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditCustomer(customer)}
+      {/* Add Customer Modal/Form */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Add New Customer</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">Company Name</label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  value={newCustomer.companyName}
+                  onChange={handleNewCustomerInputChange}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="representativeName" className="block text-sm font-medium text-gray-700">Representative Name</label>
+                <Input
+                  id="representativeName"
+                  name="representativeName"
+                  value={newCustomer.representativeName}
+                  onChange={handleNewCustomerInputChange}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={newCustomer.address}
+                  onChange={handleNewCustomerInputChange}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={newCustomer.phone}
+                  onChange={handleNewCustomerInputChange}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={newCustomer.email}
+                  onChange={handleNewCustomerInputChange}
+                  className="mt-1 block w-full"
+                />
+              </div>
+              <div className="flex items-center">
+                <Input
+                  id="taxExempt"
+                  name="taxExempt"
+                  type="checkbox"
+                  checked={newCustomer.taxExempt}
+                  onChange={handleNewCustomerInputChange}
                   className="mr-2"
-                >
- Edit
- </Button>
- <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
- Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Customer</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-companyName" className="text-right">
-                Company Name
-              </Label>
-              <Input
-                id="edit-companyName"
-                value={editCustomerData?.companyName || ''}
-                onChange={(e) => setEditCustomerData(editCustomerData ? { ...editCustomerData, companyName: e.target.value } : null)}
-                className="col-span-3"
-              />
+                />
+                <label htmlFor="taxExempt" className="text-sm font-medium text-gray-700">Tax Exempt</label>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-email" className="text-right">
-                Representative Name
-              </Label>
-              <Input
-                id="edit-representativeName"
-                value={editCustomerData?.representativeName || ''}
-                onChange={(e) => setEditCustomerData(editCustomerData ? { ...editCustomerData, representativeName: e.target.value } : null)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-address" className="text-right">
-                Address
-              </Label>
-              <Input
-                id="edit-address"
-                value={editCustomerData?.address || ''}
-                onChange={(e) => setEditCustomerData(editCustomerData ? { ...editCustomerData, address: e.target.value } : null)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-phone" className="text-right">
-                Phone
-              </Label>
-              <Input
-                id="edit-phone"
-                value={editCustomerData?.phone || ''}
-                onChange={(e) => setEditCustomerData(editCustomerData ? { ...editCustomerData, phone: e.target.value } : null)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editCustomerData?.email || ''}
-                onChange={(e) => setEditCustomerData(editCustomerData ? { ...editCustomerData, email: e.target.value } : null)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-taxExempt" className="text-right">
-                Tax Exempt
-              </Label>
-              <Checkbox
-                id="edit-taxExempt"
-                checked={editCustomerData?.taxExempt || false}
-                onCheckedChange={(checked) =>
-                  setEditCustomerData(editCustomerData ? { ...editCustomerData, taxExempt: checked as boolean } : null)
-                }
-                className="col-span-3"
-              />
+            <div className="flex justify-end mt-6 space-x-2">
+              <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddCustomer}>Add Customer</Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={handleSaveCustomer}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+        </div>
+      )}
+
+      {/* Customer Table */}
+      <div className="mt-8">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Company Name</TableHead>
+              <TableHead className="w-[150px]">Representative Name</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Tax Exempt</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {customers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  No customers found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              customers.map((customer) => (
+              <TableRow key={customer.id}>
+                <TableCell className="font-medium">{customer.companyName}</TableCell>
+                <TableCell>{customer.representativeName}</TableCell>
+                <TableCell>{customer.address}</TableCell>
+                <TableCell>{customer.phone}</TableCell>
+                <TableCell>{customer.email}</TableCell>
+                <TableCell>{customer.taxExempt ? 'Yes' : 'No'}</TableCell>
+                <TableCell className="text-right">
+                  <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEditCustomer(customer)}>Edit</Button>
+                  {/* Original Delete button, keeping for reference if needed
+                  <Button variant="destructive" size="sm" onClick={() => { /* TODO: Implement Delete */ }&rbrace;&gt;Delete</Button>
+                  */&rbrace;
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>Delete</Button>
+                </TableCell>
+              </TableRow>
+              )))&rbrace;
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Edit Customer Modal/Form */}
+      {isEditModalOpen && editCustomerData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Edit Customer</h2>
+            <div className="space-y-4">
+              {/* Input fields for editing */}
+                <div>
+                  <label htmlFor="editCompanyName" className="block text-sm font-medium text-gray-700">Company Name</label>
+                  <Input
+                    id="editCompanyName"
+                    name="companyName"
+                    value={editCustomerData.companyName}
+                    onChange={handleEditCustomerInputChange}
+                    className="mt-1 block w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editRepresentativeName" className="block text-sm font-medium text-gray-700">Representative Name</label>
+                  <Input
+                    id="editRepresentativeName"
+                    name="representativeName"
+                    value={editCustomerData.representativeName}
+                    onChange={handleEditCustomerInputChange}
+                    className="mt-1 block w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editAddress" className="block text-sm font-medium text-gray-700">Address</label>
+                  <Input
+                    id="editAddress"
+                    name="address"
+                    value={editCustomerData.address}
+                    onChange={handleEditCustomerInputChange}
+                    className="mt-1 block w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editPhone" className="block text-sm font-medium text-gray-700">Phone</label>
+                  <Input
+                    id="editPhone"
+                    name="phone"
+                    value={editCustomerData.phone}
+                    onChange={handleEditCustomerInputChange}
+                    className="mt-1 block w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editEmail" className="block text-sm font-medium text-gray-700">Email</label>
+                  <Input
+                    id="editEmail"
+                    name="email"
+                    type="email"
+                    value={editCustomerData.email}
+                    onChange={handleEditCustomerInputChange}
+                    className="mt-1 block w-full"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <Input
+                    id="editTaxExempt"
+                    name="taxExempt"
+                    type="checkbox"
+                    checked={editCustomerData.taxExempt}
+                    onChange={handleEditCustomerInputChange}
+                    className="mr-2"
+                  />
+                  <label htmlFor="editTaxExempt" className="text-sm font-medium text-gray-700">Tax Exempt</label>
+                </div>
+              </div>
+            <div className="flex justify-end mt-6 space-x-2">
+              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleUpdateCustomer}>Save Changes</Button>
+            </div>
+            </div>
+          </div>
 };
+
 export default CustomerManagementPage;

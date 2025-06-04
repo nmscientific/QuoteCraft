@@ -78,6 +78,7 @@ const quoteSchema = z.object({
   ),
 });
 
+
 type Quote = z.infer<typeof quoteSchema>;
 
 // Define a type for the products.  This is temporary, we will be fetching the products in a future step.
@@ -157,6 +158,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
       price: number;
     }[]
   >([]);
+  const [includeSalesTax, setIncludeSalesTax] = useState(true);
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
@@ -207,6 +209,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
             form.setValue('projectName', quoteData.projectName || '');
             form.setValue('description', quoteData.description || '');
             setProducts(quoteData.products || []);
+            setIncludeSalesTax(quoteData.includeSalesTax ?? true); // Load sales tax setting, default to true
           } else {
             toast({
               variant: 'destructive',
@@ -269,13 +272,18 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
     }, 0);
   };
 
+  const calculateSalesTax = (subtotal: number) => {
+    const salesTaxRate = 0.0825; // 8.25% sales tax
+ return subtotal * salesTaxRate;
+  }
+
   const calculateGrandTotal = () => {
     const subtotal = calculateSubtotal();
-    const salesTaxRate = 0.0825; // 8.25% sales tax
-    const salesTax = subtotal * salesTaxRate;
-    return subtotal + salesTax;
+    if (includeSalesTax) {
+      return subtotal + calculateSalesTax(subtotal);
+    }
+    return subtotal;
   };
-
 
   const onSubmit = async (values: Quote) => {
     const subtotal = calculateSubtotal();
@@ -285,6 +293,7 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
       projectName: values.projectName,
       description: values.description,
       products: products,
+ includeSalesTax: includeSalesTax, // Save sales tax setting
       total: subtotal,
     };
 
@@ -599,9 +608,24 @@ const CreateQuotePage: React.FC<CreateQuotePageProps> = ({
               <div>
                 <Label>Subtotal: ${calculateSubtotal().toFixed(2)}</Label>
               </div>
+              {includeSalesTax && (
+                <div>
+                  <Label>Sales Tax (8.25%): ${calculateSalesTax(calculateSubtotal()).toFixed(2)}</Label>
+                </div>
+              )}
               <div>
-                 <Label>Grand Total (including 8.25% sales tax): ${calculateGrandTotal().toFixed(2)}</Label>
+                 <Label>Grand Total: ${calculateGrandTotal().toFixed(2)}</Label>
               </div>
+
+              <div className="flex items-center space-x-2 print:hidden">
+                <input
+                  type="checkbox"
+                  id="includeSalesTax"
+                  checked={includeSalesTax}
+                  onChange={(e) => setIncludeSalesTax(e.target.checked)}
+                />
+                <Label htmlFor="includeSalesTax">Include Sales Tax</Label>
+            </div>
 
               <div className="print:hidden">
                 {!isViewMode && <Button type="submit">{isEditMode ? "Update Quote" : "Create Quote"}</Button>}

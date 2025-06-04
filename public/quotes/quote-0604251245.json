@@ -1,0 +1,25 @@
+{
+  "customerName": "tester",
+  "projectName": "A test project Name",
+  "description": "see if sales tax check box works",
+  "products": [
+    {
+      "productDescription": "Test Product Entry 1",
+      "lengthFeet": 1,
+      "lengthInches": 1,
+      "widthFeet": 2,
+      "widthInches": 2,
+      "price": 1
+    },
+    {
+      "productDescription": "Test Product Entry 2",
+      "lengthFeet": 1,
+      "lengthInches": 1,
+      "widthFeet": 2,
+      "widthInches": 2,
+      "price": 2
+    }
+  ],
+  "total": 7.041666666666666,
+  "quoteNumber": "0604251245"
+}
